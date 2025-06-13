@@ -1,10 +1,10 @@
 ;;; tidal.el --- Interact with TidalCycles for live coding patterns  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012  alex@slab.org
+;; Copyright (C) 2025  alex@slab.org
 ;; Copyright (C) 2006-2008  rohan drape (hsc3.el)
 
 ;; Author: alex@slab.org
-;; Homepage: https://github.com/tidalcycles/Tidal
+;; Homepage: https://codeberg.org/uzu/tidal
 ;; Version: 0.0.1
 ;; Keywords: tools
 ;; Package-Requires: ((haskell-mode "16") (emacs "25.1"))

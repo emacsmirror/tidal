@@ -3,67 +3,67 @@
 ## 1.9.5 - Sashiko
 
 ## What's Changed
-* avoid loading stream module in other modules, so hint wont crash by @polymorphicengine in https://github.com/tidalcycles/Tidal/pull/1019
-* change streamGetnow to factor in the processAhead and also destroy the sessionstate by @polymorphicengine in https://github.com/tidalcycles/Tidal/pull/1025
-* fix minor7sharp9 chord (the 9th wasn't sharp) by @cleary in https://github.com/tidalcycles/Tidal/pull/1036
-* add metatune param, now against 1.9-dev by @ahihi in https://github.com/tidalcycles/Tidal/pull/1046
-* Build fixes for Tidal 1.9 by @mindofmatthew in https://github.com/tidalcycles/Tidal/pull/1052
-* Update link 1.9 dev by @yaxu in https://github.com/tidalcycles/Tidal/pull/1058
-* More build fixes by @mindofmatthew in https://github.com/tidalcycles/Tidal/pull/1062
-* Consolidate site docs into source docs, and some docs editing by @trespaul in https://github.com/tidalcycles/Tidal/pull/1070
-* Fix negative numbers not working for boolean euclids  by @geikha in https://github.com/tidalcycles/Tidal/pull/1063
+* avoid loading stream module in other modules, so hint wont crash by @polymorphicengine in https://codeberg.org/uzu/Tidal/pull/1019
+* change streamGetnow to factor in the processAhead and also destroy the sessionstate by @polymorphicengine in https://codeberg.org/uzu/Tidal/pull/1025
+* fix minor7sharp9 chord (the 9th wasn't sharp) by @cleary in https://codeberg.org/uzu/Tidal/pull/1036
+* add metatune param, now against 1.9-dev by @ahihi in https://codeberg.org/uzu/Tidal/pull/1046
+* Build fixes for Tidal 1.9 by @mindofmatthew in https://codeberg.org/uzu/Tidal/pull/1052
+* Update link 1.9 dev by @yaxu in https://codeberg.org/uzu/Tidal/pull/1058
+* More build fixes by @mindofmatthew in https://codeberg.org/uzu/Tidal/pull/1062
+* Consolidate site docs into source docs, and some docs editing by @trespaul in https://codeberg.org/uzu/Tidal/pull/1070
+* Fix negative numbers not working for boolean euclids  by @geikha in https://codeberg.org/uzu/Tidal/pull/1063
 
 ## New Contributors
-* @ahihi made their first contribution in https://github.com/tidalcycles/Tidal/pull/1046
-* @trespaul made their first contribution in https://github.com/tidalcycles/Tidal/pull/1070
-* @geikha made their first contribution in https://github.com/tidalcycles/Tidal/pull/1063
+* @ahihi made their first contribution in https://codeberg.org/uzu/Tidal/pull/1046
+* @trespaul made their first contribution in https://codeberg.org/uzu/Tidal/pull/1070
+* @geikha made their first contribution in https://codeberg.org/uzu/Tidal/pull/1063
 
-**Full Changelog**: https://github.com/tidalcycles/Tidal/compare/v1.9.4...v1.9.5
+**Full Changelog**: https://codeberg.org/uzu/Tidal/compare/v1.9.4...v1.9.5
 
 ## 1.9.4 - Stitch
 
 ### What's Changed
-* fix #986 by @jwaldmann in https://github.com/tidalcycles/Tidal/pull/987
-* fix #988 by @jwaldmann in https://github.com/tidalcycles/Tidal/pull/989
-* Tidal listener update and rework by @polymorphicengine in https://github.com/tidalcycles/Tidal/pull/996
-* ci: update GitHub actions by @SpencerIsGiddy in https://github.com/tidalcycles/Tidal/pull/994
-* Fix markup errors in and add to Sound.Tidal.UI documentation. by @patrickt in https://github.com/tidalcycles/Tidal/pull/992
-* reset and restart by @yaxu in https://github.com/tidalcycles/Tidal/pull/997
-* Add extractN and extend getN by @thgrund in https://github.com/tidalcycles/Tidal/pull/999
+* fix #986 by @jwaldmann in https://codeberg.org/uzu/Tidal/pull/987
+* fix #988 by @jwaldmann in https://codeberg.org/uzu/Tidal/pull/989
+* Tidal listener update and rework by @polymorphicengine in https://codeberg.org/uzu/Tidal/pull/996
+* ci: update GitHub actions by @SpencerIsGiddy in https://codeberg.org/uzu/Tidal/pull/994
+* Fix markup errors in and add to Sound.Tidal.UI documentation. by @patrickt in https://codeberg.org/uzu/Tidal/pull/992
+* reset and restart by @yaxu in https://codeberg.org/uzu/Tidal/pull/997
+* Add extractN and extend getN by @thgrund in https://codeberg.org/uzu/Tidal/pull/999
 
 ### New Contributors
-* @SpencerIsGiddy made their first contribution in https://github.com/tidalcycles/Tidal/pull/994
-* @patrickt made their first contribution in https://github.com/tidalcycles/Tidal/pull/992
+* @SpencerIsGiddy made their first contribution in https://codeberg.org/uzu/Tidal/pull/994
+* @patrickt made their first contribution in https://codeberg.org/uzu/Tidal/pull/992
 
-**Full Changelog**: https://github.com/tidalcycles/Tidal/compare/v1.9.3...v1.9.4
+**Full Changelog**: https://codeberg.org/uzu/Tidal/compare/v1.9.3...v1.9.4
 
 ## 1.9.3 - Kolam
 
 ### What's Changed
-* fix for squeezejoin  by @yaxu in https://github.com/tidalcycles/Tidal/pull/950
-* tidal.el fix silencer by @zzkt in https://github.com/tidalcycles/Tidal/pull/955
-* add accelerate to nobus and fix typo for begin by @yaxu in https://github.com/tidalcycles/Tidal/pull/956
-* Fix warnings by @Zalastax in https://github.com/tidalcycles/Tidal/pull/962
-* Add a Nix Flake for building and developing Tidal by @mitchmindtree in https://github.com/tidalcycles/Tidal/pull/963
-* Make distrib only take structure from the euclid by @yaxu in https://github.com/tidalcycles/Tidal/pull/961
-* Fix build by @yaxu in https://github.com/tidalcycles/Tidal/pull/965
-* Fix resetCycles skipping and lateness by @Zalastax in https://github.com/tidalcycles/Tidal/pull/966
-* Add setCycle by @Zalastax in https://github.com/tidalcycles/Tidal/pull/969
-* CHANGELOG gardening by @mindofmatthew in https://github.com/tidalcycles/Tidal/pull/971
-* Comments for some state functions by @JeffreyBenjaminBrown in https://github.com/tidalcycles/Tidal/pull/973
-* Comments on time, and haddock fixes by @JeffreyBenjaminBrown in https://github.com/tidalcycles/Tidal/pull/974
-* Fix warning about type constraint by @mindofmatthew in https://github.com/tidalcycles/Tidal/pull/977
-* Fix squeeze join by @yaxu in https://github.com/tidalcycles/Tidal/pull/975
-* `trigger` and friends without pattern IDs by @mindofmatthew in https://github.com/tidalcycles/Tidal/pull/970
-* Rename ghost'' to ghostWith by @Zalastax in https://github.com/tidalcycles/Tidal/pull/967
-* Added minor major seventh chord by @jqueraltmo in https://github.com/tidalcycles/Tidal/pull/978
-* support for hosc-0.20 by @yaxu in https://github.com/tidalcycles/Tidal/pull/981
+* fix for squeezejoin  by @yaxu in https://codeberg.org/uzu/Tidal/pull/950
+* tidal.el fix silencer by @zzkt in https://codeberg.org/uzu/Tidal/pull/955
+* add accelerate to nobus and fix typo for begin by @yaxu in https://codeberg.org/uzu/Tidal/pull/956
+* Fix warnings by @Zalastax in https://codeberg.org/uzu/Tidal/pull/962
+* Add a Nix Flake for building and developing Tidal by @mitchmindtree in https://codeberg.org/uzu/Tidal/pull/963
+* Make distrib only take structure from the euclid by @yaxu in https://codeberg.org/uzu/Tidal/pull/961
+* Fix build by @yaxu in https://codeberg.org/uzu/Tidal/pull/965
+* Fix resetCycles skipping and lateness by @Zalastax in https://codeberg.org/uzu/Tidal/pull/966
+* Add setCycle by @Zalastax in https://codeberg.org/uzu/Tidal/pull/969
+* CHANGELOG gardening by @mindofmatthew in https://codeberg.org/uzu/Tidal/pull/971
+* Comments for some state functions by @JeffreyBenjaminBrown in https://codeberg.org/uzu/Tidal/pull/973
+* Comments on time, and haddock fixes by @JeffreyBenjaminBrown in https://codeberg.org/uzu/Tidal/pull/974
+* Fix warning about type constraint by @mindofmatthew in https://codeberg.org/uzu/Tidal/pull/977
+* Fix squeeze join by @yaxu in https://codeberg.org/uzu/Tidal/pull/975
+* `trigger` and friends without pattern IDs by @mindofmatthew in https://codeberg.org/uzu/Tidal/pull/970
+* Rename ghost'' to ghostWith by @Zalastax in https://codeberg.org/uzu/Tidal/pull/967
+* Added minor major seventh chord by @jqueraltmo in https://codeberg.org/uzu/Tidal/pull/978
+* support for hosc-0.20 by @yaxu in https://codeberg.org/uzu/Tidal/pull/981
 
 ### New Contributors
-* @mitchmindtree made their first contribution in https://github.com/tidalcycles/Tidal/pull/963
-* @jqueraltmo made their first contribution in https://github.com/tidalcycles/Tidal/pull/978
+* @mitchmindtree made their first contribution in https://codeberg.org/uzu/Tidal/pull/963
+* @jqueraltmo made their first contribution in https://codeberg.org/uzu/Tidal/pull/978
 
-**Full Changelog**: https://github.com/tidalcycles/Tidal/compare/v1.9.2...v1.9.3
+**Full Changelog**: https://codeberg.org/uzu/Tidal/compare/v1.9.2...v1.9.3
 
 ## 1.9.2 - Siteswap c
 Same with 1.9.1, but now with new tidal-link version 1.0.1
@@ -77,39 +77,39 @@ seems to want this.
 ### What's Changed
 
 #### General enhancements
-* Rename linux binary name by @ndr-brt in https://github.com/tidalcycles/Tidal/pull/911
-* Fix echo by @ndr-brt in https://github.com/tidalcycles/Tidal/pull/910
-* If first argument of euclid is negative, apply euclidInv by @polymorphicengine in https://github.com/tidalcycles/Tidal/pull/916
-* Add squeeze operators (`||+`, `*||`, etc) by @yaxu in https://github.com/tidalcycles/Tidal/pull/919
-* Make chunk reverse direction with negative number by @ndr-brt in https://github.com/tidalcycles/Tidal/pull/918
-* overhaul of the chord parser by @polymorphicengine in https://github.com/tidalcycles/Tidal/pull/931
+* Rename linux binary name by @ndr-brt in https://codeberg.org/uzu/Tidal/pull/911
+* Fix echo by @ndr-brt in https://codeberg.org/uzu/Tidal/pull/910
+* If first argument of euclid is negative, apply euclidInv by @polymorphicengine in https://codeberg.org/uzu/Tidal/pull/916
+* Add squeeze operators (`||+`, `*||`, etc) by @yaxu in https://codeberg.org/uzu/Tidal/pull/919
+* Make chunk reverse direction with negative number by @ndr-brt in https://codeberg.org/uzu/Tidal/pull/918
+* overhaul of the chord parser by @polymorphicengine in https://codeberg.org/uzu/Tidal/pull/931
 
 #### New ableton link support
-* Use ableton link for scheduling by @Zalastax in https://github.com/tidalcycles/Tidal/pull/898
-* tidal-link: add link source files to extra-source-files, fixes #924 by @yaxu in https://github.com/tidalcycles/Tidal/pull/925
-* Use target latency in all send modes by @Zalastax in https://github.com/tidalcycles/Tidal/pull/927
-* Rename cCyclesPerBeat -> cBeatsPerCycle by @Zalastax in https://github.com/tidalcycles/Tidal/pull/939
+* Use ableton link for scheduling by @Zalastax in https://codeberg.org/uzu/Tidal/pull/898
+* tidal-link: add link source files to extra-source-files, fixes #924 by @yaxu in https://codeberg.org/uzu/Tidal/pull/925
+* Use target latency in all send modes by @Zalastax in https://codeberg.org/uzu/Tidal/pull/927
+* Rename cCyclesPerBeat -> cBeatsPerCycle by @Zalastax in https://codeberg.org/uzu/Tidal/pull/939
 
 #### Emacs plugin updates
-* formatting fixes in tidal.el by @zzkt in https://github.com/tidalcycles/Tidal/pull/932
-* a window-excursion for tidal.el by @zzkt in https://github.com/tidalcycles/Tidal/pull/933
-* autoloads for tidal.el by @zzkt in https://github.com/tidalcycles/Tidal/pull/934
-* avoid race in loading bootscript during restart by @zzkt in https://github.com/tidalcycles/Tidal/pull/937
+* formatting fixes in tidal.el by @zzkt in https://codeberg.org/uzu/Tidal/pull/932
+* a window-excursion for tidal.el by @zzkt in https://codeberg.org/uzu/Tidal/pull/933
+* autoloads for tidal.el by @zzkt in https://codeberg.org/uzu/Tidal/pull/934
+* avoid race in loading bootscript during restart by @zzkt in https://codeberg.org/uzu/Tidal/pull/937
 
 #### Tidal-parse (estuary) updates
-* Various updates to tidal-parse by @dktr0 in https://github.com/tidalcycles/Tidal/pull/913 and  https://github.com/tidalcycles/Tidal/pull/941
+* Various updates to tidal-parse by @dktr0 in https://codeberg.org/uzu/Tidal/pull/913 and  https://codeberg.org/uzu/Tidal/pull/941
 
 #### Maintenance
-* Increase upper bounds of text dependency by @yaxu in https://github.com/tidalcycles/Tidal/pull/948
-* Use system-cxx-std-lib by @Zalastax in https://github.com/tidalcycles/Tidal/pull/944
-* Use c++ extra library for MacOS by @giuseppelillo in https://github.com/tidalcycles/Tidal/pull/946
+* Increase upper bounds of text dependency by @yaxu in https://codeberg.org/uzu/Tidal/pull/948
+* Use system-cxx-std-lib by @Zalastax in https://codeberg.org/uzu/Tidal/pull/944
+* Use c++ extra library for MacOS by @giuseppelillo in https://codeberg.org/uzu/Tidal/pull/946
 
 ### New Contributors
-* @Zalastax made their first contribution in https://github.com/tidalcycles/Tidal/pull/898
-* @zzkt made their first contribution in https://github.com/tidalcycles/Tidal/pull/932
-* @giuseppelillo made their first contribution in https://github.com/tidalcycles/Tidal/pull/946
+* @Zalastax made their first contribution in https://codeberg.org/uzu/Tidal/pull/898
+* @zzkt made their first contribution in https://codeberg.org/uzu/Tidal/pull/932
+* @giuseppelillo made their first contribution in https://codeberg.org/uzu/Tidal/pull/946
 
-**Full Changelog**: https://github.com/tidalcycles/Tidal/compare/v1.8.0...v1.9.0
+**Full Changelog**: https://codeberg.org/uzu/Tidal/compare/v1.8.0...v1.9.0
 
 ## 1.8.1 - Sanquhar b
 * Removed executable from tidal.cabal file (while latest ghc on windows fails to build it)
@@ -126,50 +126,50 @@ seems to want this.
 * Introduce echo and echoWith, deprecate stut and stutWith by @ndr-brt in #904
 * tidal-listener: Optional WITH_GHC environment variable by @mindofmatthew in #903
 
-Commit list: https://github.com/tidalcycles/Tidal/compare/1.7.10...v1.8.0
+Commit list: https://codeberg.org/uzu/Tidal/compare/1.7.10...v1.8.0
 
 ## 1.7.10 - Tama b
-* Derive RealFrac for Note by @ndr-brt in https://github.com/tidalcycles/Tidal/pull/876
-* Add timescale and timewin control params by @yaxu in https://github.com/tidalcycles/Tidal/pull/878
-* deriving typeclass memberships for ID by @polymorphicengine in https://github.com/tidalcycles/Tidal/pull/879
-* Adds the jumpMod' transition by @th-four in https://github.com/tidalcycles/Tidal/pull/881
-* Import safe-tidal-cli ghci simulator as tidal binary by @yaxu in https://github.com/tidalcycles/Tidal/pull/880
-* Tweaks to tidal binary, and add to linux workflow by @yaxu in https://github.com/tidalcycles/Tidal/pull/882
-* add tidal ghci replacement to macos and windows workflows by @yaxu in https://github.com/tidalcycles/Tidal/pull/883
+* Derive RealFrac for Note by @ndr-brt in https://codeberg.org/uzu/Tidal/pull/876
+* Add timescale and timewin control params by @yaxu in https://codeberg.org/uzu/Tidal/pull/878
+* deriving typeclass memberships for ID by @polymorphicengine in https://codeberg.org/uzu/Tidal/pull/879
+* Adds the jumpMod' transition by @th-four in https://codeberg.org/uzu/Tidal/pull/881
+* Import safe-tidal-cli ghci simulator as tidal binary by @yaxu in https://codeberg.org/uzu/Tidal/pull/880
+* Tweaks to tidal binary, and add to linux workflow by @yaxu in https://codeberg.org/uzu/Tidal/pull/882
+* add tidal ghci replacement to macos and windows workflows by @yaxu in https://codeberg.org/uzu/Tidal/pull/883
 
 ## 1.7.9 - Tama
 
 ### What's Changed
-* Show lists of values by @polymorphicengine in https://github.com/tidalcycles/Tidal/pull/838
-* Port listener wiki content as README by @ndr-brt in https://github.com/tidalcycles/Tidal/pull/851
-* Chords - consistent naming cont'd by @cleary in https://github.com/tidalcycles/Tidal/pull/840
-* Formalise pattern IDs by @mindofmatthew in https://github.com/tidalcycles/Tidal/pull/807
-* Switch to non-blocking pMap updates for transitions by @bgold-cosmos in https://github.com/tidalcycles/Tidal/pull/858
-* Add listener build workflows by @ndr-brt in https://github.com/tidalcycles/Tidal/pull/852
-* Fix tidal-listener install process by @ndr-brt in https://github.com/tidalcycles/Tidal/pull/861
-* Fix mod by @bgold-cosmos in https://github.com/tidalcycles/Tidal/pull/860
-* Fix stack ci using last lts resolver by @ndr-brt in https://github.com/tidalcycles/Tidal/pull/862
-* Make Pattern instance Monoid by @fbous in https://github.com/tidalcycles/Tidal/pull/865
-* Added OSC playback control for silencing individual patterns by @njanssen in https://github.com/tidalcycles/Tidal/pull/863
-* Use better show instances for notes & rationals by @mindofmatthew in https://github.com/tidalcycles/Tidal/pull/857
-* tidal-listener: Separate build from release by @ndr-brt in https://github.com/tidalcycles/Tidal/pull/866
-* Exponential double by @ndr-brt in https://github.com/tidalcycles/Tidal/pull/871
-* Comments by @JeffreyBenjaminBrown in https://github.com/tidalcycles/Tidal/pull/877
-* Fix for classic dirt support by @yaxu https://github.com/tidalcycles/Tidal/commit/15b5b8b91af08ebad39efe2a7e0712b21f606ca4
-* New alias `number` for `n` by @yaxu https://github.com/tidalcycles/Tidal/commit/ac0be63d686ab37f7b2dcd440d4bd8f3898453e8
-* Allow "0..8" to be parsed as a range of doubles in mininotation by @yaxu https://github.com/tidalcycles/Tidal/commit/55f8ad9b0091b43fdd364eced25bc9c655d157cc
-* Bugfix for `timeLoop` by @yaxu in https://github.com/tidalcycles/Tidal/commit/29f28ed637a7c17ad2b22558d097a694da604e2d
+* Show lists of values by @polymorphicengine in https://codeberg.org/uzu/Tidal/pull/838
+* Port listener wiki content as README by @ndr-brt in https://codeberg.org/uzu/Tidal/pull/851
+* Chords - consistent naming cont'd by @cleary in https://codeberg.org/uzu/Tidal/pull/840
+* Formalise pattern IDs by @mindofmatthew in https://codeberg.org/uzu/Tidal/pull/807
+* Switch to non-blocking pMap updates for transitions by @bgold-cosmos in https://codeberg.org/uzu/Tidal/pull/858
+* Add listener build workflows by @ndr-brt in https://codeberg.org/uzu/Tidal/pull/852
+* Fix tidal-listener install process by @ndr-brt in https://codeberg.org/uzu/Tidal/pull/861
+* Fix mod by @bgold-cosmos in https://codeberg.org/uzu/Tidal/pull/860
+* Fix stack ci using last lts resolver by @ndr-brt in https://codeberg.org/uzu/Tidal/pull/862
+* Make Pattern instance Monoid by @fbous in https://codeberg.org/uzu/Tidal/pull/865
+* Added OSC playback control for silencing individual patterns by @njanssen in https://codeberg.org/uzu/Tidal/pull/863
+* Use better show instances for notes & rationals by @mindofmatthew in https://codeberg.org/uzu/Tidal/pull/857
+* tidal-listener: Separate build from release by @ndr-brt in https://codeberg.org/uzu/Tidal/pull/866
+* Exponential double by @ndr-brt in https://codeberg.org/uzu/Tidal/pull/871
+* Comments by @JeffreyBenjaminBrown in https://codeberg.org/uzu/Tidal/pull/877
+* Fix for classic dirt support by @yaxu https://codeberg.org/uzu/Tidal/commit/15b5b8b91af08ebad39efe2a7e0712b21f606ca4
+* New alias `number` for `n` by @yaxu https://codeberg.org/uzu/Tidal/commit/ac0be63d686ab37f7b2dcd440d4bd8f3898453e8
+* Allow "0..8" to be parsed as a range of doubles in mininotation by @yaxu https://codeberg.org/uzu/Tidal/commit/55f8ad9b0091b43fdd364eced25bc9c655d157cc
+* Bugfix for `timeLoop` by @yaxu in https://codeberg.org/uzu/Tidal/commit/29f28ed637a7c17ad2b22558d097a694da604e2d
 * Retire pre ghc 8.4 support by @yaxu 
 * Pattern first parameter of `wedge` by @yaxu
-* Allow `|**|` et al to work on control patterns by @yaxu in https://github.com/tidalcycles/Tidal/commit/7142775c2039cae4cde9bdd6f68b3e0cbae2de9d
-* Add alias `timecat` for timeCat` by @yaxu in https://github.com/tidalcycles/Tidal/commit/363889bdc963d9357daf1893d18ab9dfc33ca5ac
+* Allow `|**|` et al to work on control patterns by @yaxu in https://codeberg.org/uzu/Tidal/commit/7142775c2039cae4cde9bdd6f68b3e0cbae2de9d
+* Add alias `timecat` for timeCat` by @yaxu in https://codeberg.org/uzu/Tidal/commit/363889bdc963d9357daf1893d18ab9dfc33ca5ac
 
 ### New Contributors
-* @fbous made their first contribution in https://github.com/tidalcycles/Tidal/pull/865
-* @njanssen made their first contribution in https://github.com/tidalcycles/Tidal/pull/863
-* @JeffreyBenjaminBrown made their first contribution in https://github.com/tidalcycles/Tidal/pull/877
+* @fbous made their first contribution in https://codeberg.org/uzu/Tidal/pull/865
+* @njanssen made their first contribution in https://codeberg.org/uzu/Tidal/pull/863
+* @JeffreyBenjaminBrown made their first contribution in https://codeberg.org/uzu/Tidal/pull/877
 
-**Full Changelog**: https://github.com/tidalcycles/Tidal/compare/1.7.8...1.7.9
+**Full Changelog**: https://codeberg.org/uzu/Tidal/compare/1.7.8...1.7.9
 
 ## 1.7.8 - Ayatakedai
 * Add pattern id to patterns as _id_, and send it with /code/highlights
@@ -441,7 +441,7 @@ Commit list: https://github.com/tidalcycles/Tidal/compare/1.7.10...v1.8.0
 
 ## 0.9.10 (and earlier missing versions from this log)
 * arpg, a function to arpeggiate
-* within', an alternate within with a different approach to time, following discussion here https://github.com/tidalcycles/Tidal/issues/313
+* within', an alternate within with a different approach to time, following discussion here https://codeberg.org/uzu/Tidal/issues/313
 * sine et al are now generalised so can be used as double or rational patterns
 * New Sound.Tidal.Simple module with a range of simple transformations (faster, slower, higher, lower, mute, etc)
 * slice upgraded to take a pattern of slice indexes
