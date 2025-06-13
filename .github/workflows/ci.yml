@@ -9,7 +9,7 @@ on:
 
 jobs:
   cabal:
-    runs-on: ubuntu-24.04
+    runs-on: docker
     strategy:
       matrix:
         versions:
@@ -64,7 +64,7 @@ jobs:
           key: cabal-${{ runner.os }}-${{ matrix.versions.ghc }}
 
       - name: install cabal and ghc
-        uses: haskell-actions/setup@v2
+        uses: https://github.com/haskell-actions/setup@v2
         with:
           ghc-version: ${{ matrix.versions.ghc }}
           cabal-version: ${{ matrix.versions.cabal }}
