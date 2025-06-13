@@ -57,4 +57,4 @@ test-suite tests
 
 source-repository head
   type:     git
-  location: https://github.com/tidalcycles/tidal-parse
+  location: https://codeberg.org/uzu/tidal

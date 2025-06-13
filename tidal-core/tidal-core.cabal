@@ -81,4 +81,4 @@ test-suite tests
 
 source-repository head
   type: git
-  location: https://github.com/tidalcycles/Tidal
+  location: https://codeberg.org/uzu/tidal
