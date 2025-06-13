@@ -85,7 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: haskell-actions/run-ormolu@v17
+      - uses: https://github.com/haskell-actions/run-ormolu@v17
         with:
           mode: inplace
           pattern: |
