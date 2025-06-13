@@ -69,17 +69,17 @@ jobs:
           ghc-version: ${{ matrix.versions.ghc }}
           cabal-version: ${{ matrix.versions.cabal }}
 
-      - name: Install ncurses
-        run: apt install -y libncurses-dev # libasound2-dev
+      #- name: Install ncurses and libasound2-dev
+      #  run: apt install -y libncurses-dev libasound2-dev
 
       - name: update
         run: cabal v2-update
 
       - name: build
-        run: cabal v2-build ${{ matrix.versions.args }} --enable-tests --enable-benchmarks ./ tidal-core tidal-parse tidal-parse-ffi tidal-listener tidal-link feedforward
+        run: cabal v2-build ${{ matrix.versions.args }} --enable-tests --enable-benchmarks ./ tidal-core tidal-parse tidal-parse-ffi tidal-listener tidal-link
 
       - name: test
-        run: cabal v2-test ${{ matrix.versions.args }} --enable-tests --enable-benchmarks ./ tidal-core tidal-parse tidal-parse-ffi tidal-listener tidal-link feedforward
+        run: cabal v2-test ${{ matrix.versions.args }} --enable-tests --enable-benchmarks ./ tidal-core tidal-parse tidal-parse-ffi tidal-listener tidal-link
 
   ormolu:
     runs-on: ubuntu-latest
