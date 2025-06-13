@@ -70,7 +70,7 @@ jobs:
           cabal-version: ${{ matrix.versions.cabal }}
 
       - name: Install ncurses, libasound
-        run: sudo apt install -y libncurses-dev libasound2-dev
+        run: apt install -y libncurses-dev libasound2-dev
 
       - name: update
         run: cabal v2-update
