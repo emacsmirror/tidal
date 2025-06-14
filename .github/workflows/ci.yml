@@ -96,7 +96,7 @@ jobs:
             tidal-parse/src/**/*.hs
             tidal-listener/src/**/*.hs
       - name: apply ormolu formatting
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: https://github.com/stefanzweifel/git-auto-commit-action@v4
         if: ${{ always() }}
         with:
           commit_message: automated ormolu reformatting
