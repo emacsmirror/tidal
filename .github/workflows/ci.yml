@@ -38,15 +38,14 @@ jobs:
           #   cabal: 3.6.2.0-p1
           #   args: --allow-newer=base,template-haskell
           #   experimental: false
-          # - ghc: 8.8.4
-          #   cabal: 3.6.2.0-p1
-          #   args: --allow-newer=base,template-haskell
-          #   experimental: false
-          # oldest supported
-          - ghc: 8.6.5
+          - ghc: 8.8.4
             cabal: 3.6.2.0-p1
             args: --allow-newer=base,template-haskell
             experimental: false
+          # - ghc: 8.6.5
+          #   cabal: 3.6.2.0-p1
+          #   args: --allow-newer=base,template-haskell
+          #  experimental: false
 
     continue-on-error: ${{ matrix.versions.experimental }}
     name: cabal ${{ matrix.versions.cabal }} - ghc ${{ matrix.versions.ghc }}
