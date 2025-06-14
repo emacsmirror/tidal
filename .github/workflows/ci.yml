@@ -55,6 +55,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: apt install ztd
+        run: apt update && apt install -y zstd
+
       - name: cache ~/.cabal/packages, ~/.cabal/store and dist-newstyle
         uses: actions/cache@v4
         with:
