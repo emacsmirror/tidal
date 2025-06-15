@@ -1,0 +1,106 @@
+name: Linux
+on:
+  push:
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+
+jobs:
+  cabal:
+    runs-on: docker
+    strategy:
+      matrix:
+        versions:
+          # latest
+          - ghc: latest
+            cabal: latest
+            args: --allow-newer=base,template-haskell,time
+            experimental: true
+          # # a bit newer
+          # - ghc: 9.8.2
+          #   cabal: 3.12.1.0
+          #   args: --allow-newer=base,template-haskell
+          #   experimental: false
+          # ghcup recommended
+          - ghc: 9.6.7
+            cabal: 3.12.1.0
+            args: --allow-newer=base,template-haskell
+            experimental: false
+          # # debian stable
+          # - ghc: 9.0.2
+          #   cabal: 3.4.1.0
+          #   args: --allow-newer=base,template-haskell
+          #   experimental: false
+          # ## 8.x
+          # - ghc: 8.10.7
+          #   cabal: 3.6.2.0-p1
+          #   args: --allow-newer=base,template-haskell
+          #   experimental: false
+          #- ghc: 8.8.4
+          #  cabal: 3.6.2.0-p1
+          #  args: --allow-newer=base,template-haskell
+          #  experimental: false
+          # - ghc: 8.6.5
+          #   cabal: 3.6.2.0-p1
+          #   args: --allow-newer=base,template-haskell
+          #  experimental: false
+
+    continue-on-error: ${{ matrix.versions.experimental }}
+    name: cabal ${{ matrix.versions.cabal }} - ghc ${{ matrix.versions.ghc }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: apt install ztd, build-essential
+        run: apt update && apt install -y zstd build-essential
+
+      - name: cache ~/.cabal/packages, ~/.cabal/store and dist-newstyle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/packages
+            ~/.cabal/store
+            dist-newstyle
+            /root/.ghcup/ghc/${{ matrix.versions.ghc }}
+          key: cabal-${{ runner.os }}-${{ matrix.versions.ghc }}
+
+      - name: install cabal and ghc
+        uses: https://github.com/haskell-actions/setup@v2
+        with:
+          ghc-version: ${{ matrix.versions.ghc }}
+          cabal-version: ${{ matrix.versions.cabal }}
+
+      #- name: Install ncurses and libasound2-dev
+      #  run: apt install -y libncurses-dev libasound2-dev
+
+      - name: update
+        run: cabal v2-update
+
+      - name: build
+        run: cabal v2-build ${{ matrix.versions.args }} --enable-tests --enable-benchmarks ./ tidal-core tidal-parse tidal-parse-ffi tidal-listener tidal-link
+
+      - name: test
+        run: cabal v2-test ${{ matrix.versions.args }} --enable-tests --enable-benchmarks ./ tidal-core tidal-parse tidal-parse-ffi 
+
+  ormolu:
+    runs-on: docker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: https://github.com/haskell-actions/run-ormolu@v17
+        with:
+          mode: inplace
+          pattern: |
+            src/**/*.hs
+            tidal-core/src/**/*.hs
+            tidal-link/src/**/*.hs
+            tidal-parse/src/**/*.hs
+            tidal-listener/src/**/*.hs
+      - name: apply ormolu formatting
+        uses: https://github.com/stefanzweifel/git-auto-commit-action@v4
+        if: ${{ always() }}
+        with:
+          commit_message: automated ormolu reformatting
+          branch: ${{ github.head_ref || github.ref_name }}
