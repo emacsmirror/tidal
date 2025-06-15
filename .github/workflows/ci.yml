@@ -64,6 +64,7 @@ jobs:
             ~/.cabal/packages
             ~/.cabal/store
             dist-newstyle
+            /root/.ghcup/ghc/${{ matrix.versions.ghc }}
           key: cabal-${{ runner.os }}-${{ matrix.versions.ghc }}
 
       - name: install cabal and ghc
