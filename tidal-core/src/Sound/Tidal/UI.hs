@@ -3004,7 +3004,7 @@ unjoin :: Pattern Bool -> Pattern b -> Pattern (Pattern b)
 unjoin pieces pat = withEvent snip pieces
   where
     -- If true, set value to the part of pattern looped at event boundaries
-    snip e@Event {value = True } = e {value = _ribbon (wholeStart e) (wholeStop e - wholeStart e) pat}
+    snip e@Event {value = True} = e {value = _ribbon (wholeStart e) (wholeStop e - wholeStart e) pat}
     -- Otherwise, set value to unchanged pattern
     snip e = e {value = pat}
 
