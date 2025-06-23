@@ -471,6 +471,12 @@ run =
           (Arc 0 1)
           (segment 2 $ quantise 1 sine :: Pattern Note)
           ("0 1" :: Pattern Note)
+    describe "unjoin" $ do
+      it "can unjoin and join as a no-op" $ do
+        compareP
+         (Arc 0 1)
+         (unwrap $ unjoin "t [t t]" ("a b c d" :: Pattern String))
+         ("a b c d")
     describe "into" $ do
       it "can transform a looped part of a pattern" $ do
         compareP (Arc 0 1)
