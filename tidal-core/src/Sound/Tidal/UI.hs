@@ -3003,7 +3003,10 @@ rib = ribbon
 unjoin :: Pattern Bool -> Pattern b -> Pattern (Pattern b)
 unjoin pieces pat = withEvent snip pieces
   where
-    snip e = e {value = _ribbon (wholeStart e) (wholeStop e - wholeStart e) pat}
+    -- If true, set value to the part of pattern looped at event boundaries
+    snip e@Event {value = True } = e {value = _ribbon (wholeStart e) (wholeStop e - wholeStart e) pat}
+    -- Otherwise, set value to unchanged pattern
+    snip e = e {value = pat}
 
 -- | Applies a function to subcycles of a pattern, as defined by the structure of another given pattern.
 into :: Pattern Bool -> (Pattern a -> Pattern b) -> Pattern a -> Pattern b

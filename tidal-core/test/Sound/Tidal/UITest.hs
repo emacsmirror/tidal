@@ -442,13 +442,13 @@ run =
         compareP
           (Arc 0 1)
           (loopFirst $ rotL 3 $ slow 8 $ "0 .. 7" :: Pattern Int)
-          ("3")
+          "3"
 
     describe "timeLoop" $ do
       it "can loop time" $ do
         compareP
           (Arc 0 1)
-          ((3 <~) $ (timeLoop 3 $ sound "<a b c d>"))
+          ((3 <~) $ timeLoop 3 (sound "<a b c d>"))
           (sound "a")
 
     describe "timeLoop" $ do
@@ -463,11 +463,16 @@ run =
         compareP
           (Arc 0 1)
           (necklace 12 [4, 2])
-          ("t f f f t f t f f f t f")
+          "t f f f t f t f f f t f"
 
     describe "quantise" $ do
       it "can quantise notes" $ do
         compareP
           (Arc 0 1)
-          (segment 2 $ quantise 1 $ sine :: Pattern Note)
+          (segment 2 $ quantise 1 sine :: Pattern Note)
           ("0 1" :: Pattern Note)
+    describe "into" $ do
+      it "can transform a looped part of a pattern" $ do
+        compareP (Arc 0 1)
+          (into "t [t t]" (fast 2) ("a b c d" :: Pattern String))
+          "a b a b c c d d"
