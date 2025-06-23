@@ -1565,7 +1565,7 @@ fit' cyc n from to p = squeezeJoin $ _fit n mapMasks to
   where
     mapMasks =
       [ stretch $ mask (const True <$> filterValues (== i) from') p'
-      | i <- [0 .. n - 1]
+        | i <- [0 .. n - 1]
       ]
     p' = density cyc p
     from' = density cyc from
@@ -2988,7 +2988,7 @@ chromaticizeBy :: (Num a, Enum a, Ord a) => Pattern a -> Pattern a -> Pattern a
 chromaticizeBy = chromaticiseBy
 
 _ribbon :: Time -> Time -> Pattern a -> Pattern a
-_ribbon offset cycles pat = restart (_slow cycles $ pure True) $ offset `rotR` pat
+_ribbon offset cycles pat = restart (_slow cycles $ pure True) $ offset `rotL` pat
 
 -- | Loops a pattern inside an `offset` for `cycles`. If you think of the entire
 -- span of time in cycles as a ribbon, you can cut a single piece and loop it.
@@ -3003,7 +3003,10 @@ rib = ribbon
 unjoin :: Pattern Bool -> Pattern b -> Pattern (Pattern b)
 unjoin pieces pat = withEvent snip pieces
   where
-    snip e = e {value = _ribbon (wholeStart e) (wholeStop e - wholeStart e) pat}
+    -- If true, set value to the part of pattern looped at event boundaries
+    snip e@Event {value = True} = e {value = _ribbon (wholeStart e) (wholeStop e - wholeStart e) pat}
+    -- Otherwise, set value to unchanged pattern
+    snip e = e {value = pat}
 
 -- | Applies a function to subcycles of a pattern, as defined by the structure of another given pattern.
 into :: Pattern Bool -> (Pattern a -> Pattern b) -> Pattern a -> Pattern b
