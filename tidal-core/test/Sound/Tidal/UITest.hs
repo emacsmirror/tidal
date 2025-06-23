@@ -476,9 +476,15 @@ run =
         compareP
          (Arc 0 1)
          (unwrap $ unjoin "t [t t]" ("a b c d" :: Pattern String))
-         ("a b c d")
+         "a b c d"
     describe "into" $ do
       it "can transform a looped part of a pattern" $ do
         compareP (Arc 0 1)
           (into "t [t t]" (fast 2) ("a b c d" :: Pattern String))
           "a b a b c c d d"
+    describe "ribbon" $ do
+      it "can loop subcycles" $ do
+        compareP
+         (Arc 0 1)
+         (_ribbon 0.25 0.25 ("a b c d" :: Pattern String))
+         "b b b b"
