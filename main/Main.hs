@@ -82,8 +82,6 @@ main = do
 core :: C.Stream -> I.InterpreterT IO ()
 core tidal = do
   message stdout "[tidal] starting..."
-  -- more settings at
-  -- https://github.com/tidalcycles/tidali/blob/master/src/Main.hs
   I.set
     [ I.languageExtensions
         I.:= [I.OverloadedStrings],

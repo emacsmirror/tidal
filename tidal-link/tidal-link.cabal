@@ -67,7 +67,7 @@ library
 
 source-repository head
   type:     git
-  location: https://github.com/tidalcycles/Tidal
+  location: https://codeberg.org/uzu/tidal
 
 executable tidal-linktest
   ghc-options: -Wall

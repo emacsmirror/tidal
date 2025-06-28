@@ -77,7 +77,7 @@ get current cps
 
 ## Speculative, not implemented yet
 
-'Expand' an expression into canonical mininotation, ref https://github.com/tidalcycles/Tidal/issues/633
+'Expand' an expression into canonical mininotation, ref https://codeberg.org/uzu/tidal/issues/633
 ```
 < /expand <code>
 > /expand/ok <expanded code>

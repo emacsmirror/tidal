@@ -26,11 +26,11 @@ main = do
 
   go
     [ "cr",
-      -- https://github.com/tidalcycles/Tidal/issues/606#issue-563234396
+      -- https://codeberg.org/uzu/tidal/issues/606#issue-563234396
       gain (unwrap $ fmap (["1", "0."] !!) $ "{0 0@7 0 1@7}%16") # s "harmor" # midichan 11,
-      -- https://github.com/tidalcycles/Tidal/issues/606#issuecomment-598776256
+      -- https://codeberg.org/uzu/tidal/issues/606#issuecomment-598776256
       superimpose (hurry "<0.5 2?") $ sound "bd",
-      -- https://github.com/tidalcycles/Tidal/issues/477#issue-411754641
+      -- https://codeberg.org/uzu/tidal/issues/477#issue-411754641
       let mkpat name pattern = (name, pattern)
           mkfx name fx = (name, fx)
           structure =
