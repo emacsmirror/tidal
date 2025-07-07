@@ -1,8 +1,122 @@
+
 # TidalCycles log of changes
+
+## 1.10.0 - waffle
+
+The code name 'waffle' comes from the bonkers three-dimensional fabric that appears from a surprisingly simple two-dimensional weave structure. [More info](https://www.ashford.co.nz/waffle-weave/)
+
+![waffle weave](https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/An_example_of_waffle_fabric.jpeg/1920px-An_example_of_waffle_fabric.jpeg)
+
+### What's Changed
+
+This v1.10.0 release has been a bit delayed so is a bumper feast of tweaks, features, bugfixes and tidying.. If your PR missed the boat don't worry we'll do them more often from now and v1.10.1 will come soon!
+
+#### Interface changes
+* add muting with `_` for p and d1-16 by @geikha in https://github.com/tidalcycles/Tidal/pull/1082
+* Add `getbpm` and `setbpm` to boot functions by @matthewkaney in https://github.com/tidalcycles/Tidal/pull/1083
+
+#### New language features
+* Add capital-M aliases for major chords by @rrrnld in https://github.com/tidalcycles/Tidal/pull/1077
+* Step-oriented functionality by @yaxu in https://github.com/tidalcycles/Tidal/pull/1072
+* Patterned tactus WIP by @yaxu in https://github.com/tidalcycles/Tidal/pull/1111
+*`normal` signal for normally-distributed random numbers from #1055 by @patrickt (backported by @sss-create in https://github.com/tidalcycles/Tidal/pull/1101)
+* Remove patterned tactus by @yaxu in https://github.com/tidalcycles/Tidal/pull/1201
+* `beat` function for "step sequencer" style rhythm notation. (Backported from Strudel) by @geikha in https://github.com/tidalcycles/Tidal/pull/1109 and https://github.com/tidalcycles/Tidal/pull/1134
+* Introduces two function families for introducing chromaticism in melodies by @aherrou in https://github.com/tidalcycles/Tidal/pull/1097
+* clip as alias for legato by @sss-create in https://github.com/tidalcycles/Tidal/pull/1158
+* Stepwise functions continued by @yaxu in https://github.com/tidalcycles/Tidal/pull/1152
+* pattern weights for chooseby functions by @yaxu in https://github.com/tidalcycles/Tidal/pull/1173
+* sample rand signal on onset, start rand pattern at 0.5 by @yaxu in https://github.com/tidalcycles/Tidal/pull/1176
+* add bank param by @yaxu in https://github.com/tidalcycles/Tidal/pull/1190
+* add stepalt by @yaxu in https://github.com/tidalcycles/Tidal/pull/1200
+
+#### Experimental tap tempo utility
+* Tap tempo WIP, bring feedforward into tidal monorepo, fix `nudgeAll` by @yaxu in https://github.com/tidalcycles/Tidal/pull/1191
+* Tap tempo utility updates by @yaxu in https://github.com/tidalcycles/Tidal/pull/1196
+
+#### Mini-notation changes
+* Support `-` for rests/gaps in mininotation by @yaxu in https://github.com/tidalcycles/Tidal/pull/1087
+* fixed: Parser errors for new rest symbol #1091 by @sss-create in https://github.com/tidalcycles/Tidal/pull/1113
+* Toplevel ',' and '|'.  by @sss-create in https://github.com/tidalcycles/Tidal/pull/1149
+
+#### OSC listener
+* #1035 added setcps and other controls to OSC Listener by @sss-create in https://github.com/tidalcycles/Tidal/pull/1102
+
+#### Boot/config changes
+* Cherry pick new Boot changes by @ejconlon and adjust to incorporate recent changes by @matthewkaney in https://github.com/tidalcycles/Tidal/pull/1081
+* added a commented enable link line in BootTidal.hs by @sss-create in https://github.com/tidalcycles/Tidal/pull/1147
+* link and clock setter functions by @sss-create in https://github.com/tidalcycles/Tidal/pull/1162
+
+#### Bug fixes
+* fix(slice): support `slice 1 _` by @grddavies in https://github.com/tidalcycles/Tidal/pull/1086
+* doTick: use exception-safe modifyMVar_ instead of takeMVar/putMVar by @ahihi in https://github.com/tidalcycles/Tidal/pull/1100
+* Fix off-by-one error in striateBy by @yaxu in https://github.com/tidalcycles/Tidal/pull/1106
+* timeToRands non-zero bug by @sss-create in https://github.com/tidalcycles/Tidal/pull/1142
+* Bugfix for squeezeJoin and dependencies including bite by @yaxu in https://github.com/tidalcycles/Tidal/pull/1145
+* [breaking change] sample signals at query onsets instead of midpoint by @yaxu in https://github.com/tidalcycles/Tidal/pull/1148
+* Fix 1068 novector by @jwaldmann in https://github.com/tidalcycles/Tidal/pull/1187
+* fix for plyWith: tweak type defaults, turn off related warning by @yaxu in https://github.com/tidalcycles/Tidal/pull/1195
+
+#### Emacs plugin
+* Hush function and keybindings by @marcora in #1012 (backported by @sss-create in https://github.com/tidalcycles/Tidal/pull/1101)
+* remove extra paren in tidal.el by @jezcope in https://github.com/tidalcycles/Tidal/pull/1110
+
+#### Source code reorganisation
+* replace Tempo module by an ableton-link synched clock that comes with tidal-link by @polymorphicengine in https://github.com/tidalcycles/Tidal/pull/1059
+* simplify the clock logic by removing LinkOperations by @polymorphicengine in https://github.com/tidalcycles/Tidal/pull/1090
+* ableton link as submodule by @sss-create in https://github.com/tidalcycles/Tidal/pull/1119
+* Split controller OSC off from SuperDirt handshake OSC (Redux for 1.9) by @matthewkaney in https://github.com/tidalcycles/Tidal/pull/1051
+* Extract Core Functionalities into tidal-core Package by @eilseq in https://github.com/tidalcycles/Tidal/pull/1155
+* Tidal core prerelease by @yaxu in https://github.com/tidalcycles/Tidal/pull/1156
+* Migrate from Microspec to Hspec by @sss-create in https://github.com/tidalcycles/Tidal/pull/1157
+* Reinstate transitions by @yaxu in https://github.com/tidalcycles/Tidal/pull/1188
+* Recombine configuration by @yaxu in https://github.com/tidalcycles/Tidal/pull/1203
+
+#### Tidal-parse updates
+* Enable Tidal-Parse FFI for Cross-Language Integration by @eilseq in https://github.com/tidalcycles/Tidal/pull/1143
+* Add rolled and rolledBy to tidal-parse by @TristanCacqueray in https://github.com/tidalcycles/Tidal/pull/1199
+
+#### Other maintenance
+* bump upper bounds of network dependency to 3.3 by @yaxu in https://github.com/tidalcycles/Tidal/pull/1080
+* more efficient sew by @yaxu in https://github.com/tidalcycles/Tidal/pull/1078, https://github.com/tidalcycles/Tidal/pull/1088
+* Bump actions/download-artifact from 2 to 4.1.7 in /.github/workflows by @dependabot in https://github.com/tidalcycles/Tidal/pull/1096
+* flake.nix: update nixpkgs and remove temporary hosc input by @ahihi in https://github.com/tidalcycles/Tidal/pull/1098
+* CI pipeline repair by @sss-create in https://github.com/tidalcycles/Tidal/pull/1104
+* hosc-0.21 support by @sss-create in https://github.com/tidalcycles/Tidal/pull/1105
+* dependency bumper by @yaxu in https://github.com/tidalcycles/Tidal/pull/1117
+* Bumping random by @github-actions in https://github.com/tidalcycles/Tidal/pull/1118
+* renamed linktest executable by @sss-create in https://github.com/tidalcycles/Tidal/pull/1107
+* Bump upper bounds by @yaxu in https://github.com/tidalcycles/Tidal/pull/1115
+* Fix upload artifact by @yaxu in https://github.com/tidalcycles/Tidal/pull/1120
+* delint by @yaxu in https://github.com/tidalcycles/Tidal/pull/1131
+* Clean warnings by @yaxu in https://github.com/tidalcycles/Tidal/pull/1133
+* substitue 'tail' with 'drop 1' by @sss-create in https://github.com/tidalcycles/Tidal/pull/1141
+* change link version and bounds to conform to the PVP by @polymorphicengine in https://github.com/tidalcycles/Tidal/pull/1140
+* update some out of date contributing info by @yaxu in https://github.com/tidalcycles/Tidal/pull/1154
+* Delint by @yaxu in https://github.com/tidalcycles/Tidal/pull/1163
+* fix warnings by @yaxu in https://github.com/tidalcycles/Tidal/pull/1175
+* delint benchmarks by @yaxu in https://github.com/tidalcycles/Tidal/pull/1177
+* import IsString from a portable module by @claudeha in https://github.com/tidalcycles/Tidal/pull/1204
+
+### New Contributors <3
+* @grddavies made their first contribution in https://github.com/tidalcycles/Tidal/pull/1086
+* @dependabot made their first contribution in https://github.com/tidalcycles/Tidal/pull/1096
+* @jezcope made their first contribution in https://github.com/tidalcycles/Tidal/pull/1110
+* @github-actions made their first contribution in https://github.com/tidalcycles/Tidal/pull/1118
+* @aherrou made their first contribution in https://github.com/tidalcycles/Tidal/pull/1097
+* @eilseq made their first contribution in https://github.com/tidalcycles/Tidal/pull/1143
+* @rrrnld made their first contribution in https://github.com/tidalcycles/Tidal/pull/1077
+* @ejconlon made their first contribution in https://github.com/tidalcycles/Tidal/pull/1081
+* @patrickt made their first contribution in #1055
+* @marcora made their first contribution in #1012
+* @TristanCacqueray made their first contribution in https://github.com/tidalcycles/Tidal/pull/1199
+* @claudeha made their first contribution in https://github.com/tidalcycles/Tidal/pull/1204
+
+**Full Changelog**: https://github.com/tidalcycles/Tidal/compare/v1.9.5...v1.10.0
 
 ## 1.9.5 - Sashiko
 
-## What's Changed
+### What's Changed
 * avoid loading stream module in other modules, so hint wont crash by @polymorphicengine in https://codeberg.org/uzu/Tidal/pull/1019
 * change streamGetnow to factor in the processAhead and also destroy the sessionstate by @polymorphicengine in https://codeberg.org/uzu/Tidal/pull/1025
 * fix minor7sharp9 chord (the 9th wasn't sharp) by @cleary in https://codeberg.org/uzu/Tidal/pull/1036
@@ -13,7 +127,7 @@
 * Consolidate site docs into source docs, and some docs editing by @trespaul in https://codeberg.org/uzu/Tidal/pull/1070
 * Fix negative numbers not working for boolean euclids  by @geikha in https://codeberg.org/uzu/Tidal/pull/1063
 
-## New Contributors
+### New Contributors
 * @ahihi made their first contribution in https://codeberg.org/uzu/Tidal/pull/1046
 * @trespaul made their first contribution in https://codeberg.org/uzu/Tidal/pull/1070
 * @geikha made their first contribution in https://codeberg.org/uzu/Tidal/pull/1063
