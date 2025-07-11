@@ -1,6 +1,14 @@
 
 # TidalCycles log of changes
 
+## 1.10.1 - Dundee
+
+### What's Changed
+
+* Moved to codeberg ! https://codeberg.org/uzu/tidal/
+* Added `ribbon`, `unjoin` and `into` by @yaxu in https://codeberg.org/uzu/tidal/pulls/1213
+* Fix regression in v1.10.0, where running patterns would be unnecessarily reverted by @yaxu in https://codeberg.org/uzu/tidal/pulls/1223
+
 ## 1.10.0 - waffle
 
 The code name 'waffle' comes from the bonkers three-dimensional fabric that appears from a surprisingly simple two-dimensional weave structure. [More info](https://www.ashford.co.nz/waffle-weave/)
