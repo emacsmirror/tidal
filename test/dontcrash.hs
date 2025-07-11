@@ -28,8 +28,11 @@ main = do
     [ "cr",
       -- https://codeberg.org/uzu/tidal/issues/606#issue-563234396
       gain (unwrap $ fmap (["1", "0."] !!) $ "{0 0@7 0 1@7}%16") # s "harmor" # midichan 11,
+      
+      -- The following test is disabled, as it's no longer triggered at 'pattern time', ref https://codeberg.org/uzu/tidal/issues/1221#issuecomment-5791100
       -- https://codeberg.org/uzu/tidal/issues/606#issuecomment-598776256
-      superimpose (hurry "<0.5 2?") $ sound "bd",
+      -- superimpose (hurry "<0.5 2?") $ sound "bd",
+
       -- https://codeberg.org/uzu/tidal/issues/477#issue-411754641
       let mkpat name pattern = (name, pattern)
           mkfx name fx = (name, fx)
