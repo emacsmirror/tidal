@@ -13,9 +13,9 @@ jobs:
     strategy:
       matrix:
         versions:
-          # latest
-          - ghc: latest
-            cabal: latest
+          # 9.12.2
+          - ghc: 9.12.2
+            cabal: 9.12.2
             args: --allow-newer=base,template-haskell,time
             experimental: true
           # # a bit newer
