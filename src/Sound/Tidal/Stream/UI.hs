@@ -65,16 +65,11 @@ streamList s = do
     showKV False (k, (PlayState {psSolo = False})) = k ++ "\n"
     showKV False (k, _) = "(" ++ k ++ ") - muted\n"
 
+-- Evaluation of pat is forced so exceptions are picked up here, before replacing the existing pattern.
 streamReplace :: Stream -> ID -> ControlPattern -> IO ()
 streamReplace stream k !pat = do
   t <- Clock.getCycleTime (toClockConfig $ sConfig stream) (sClockRef stream)
-  E.handle
-    ( \(e :: E.SomeException) -> do
-        hPutStrLn stderr $ "Failed to Stream.streamReplace: " ++ show e
-        hPutStrLn stderr "Return to previous pattern."
-        setPreviousPatternOrSilence (sPMapMV stream)
-    )
-    (updatePattern stream k t pat)
+  updatePattern stream k t pat
 
 -- streamFirst but with random cycle instead of always first cicle
 streamOnce :: Stream -> ControlPattern -> IO ()
