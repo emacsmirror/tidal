@@ -503,6 +503,8 @@ instance Parse (Pattern Double -> ControlPattern) where
       <|> $(fromTidal "loop")
       <|> $(fromTidal "coarse")
       <|> $(fromTidal "nudge")
+      <|> $(fromTidal "amp")
+      <|> $(fromTidal "velocity")
       <|> (parser :: H (String -> Pattern Double -> ControlPattern)) <*!> parser
       <|> pA_pB
       <|> a_patternB
