@@ -474,6 +474,7 @@ instance Parse (Pattern Note -> ControlPattern) where
     $(fromTidal "up")
       <|> $(fromTidal "n")
       <|> $(fromTidal "note")
+      <|> $(fromTidal "midinote")
       <|> (parser :: H (String -> Pattern Note -> ControlPattern)) <*!> parser
       <|> pA_pB
       <|> a_patternB
@@ -505,6 +506,8 @@ instance Parse (Pattern Double -> ControlPattern) where
       <|> $(fromTidal "nudge")
       <|> $(fromTidal "amp")
       <|> $(fromTidal "velocity")
+      <|> $(fromTidal "midibend")
+      <|> $(fromTidal "miditouch")
       <|> (parser :: H (String -> Pattern Double -> ControlPattern)) <*!> parser
       <|> pA_pB
       <|> a_patternB
