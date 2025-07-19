@@ -511,6 +511,7 @@ instance Parse (Pattern Double -> ControlPattern) where
       <|> $(fromTidal "amp")
       <|> $(fromTidal "velocity")
       <|> $(fromTidal "midibend")
+      <|> $(fromTidal "midichan")
       <|> $(fromTidal "miditouch")
       <|> $(fromTidal "ccn")
       <|> $(fromTidal "ccv")
