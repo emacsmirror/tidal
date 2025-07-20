@@ -3,7 +3,7 @@ The main website is here: http://tidalcycles.org/
 # Community
 
 You can join in with Tidal development and discussion around it, via the repository currently hosted on github:
-  https://github.com/tidalcycles/tidal
+  https://codeberg.org/uzu/tidal
 
 The two other active Tidal forums are the Tidal and Strudel discord:
   https://discord.gg/CqWhZEfNbq
@@ -23,7 +23,7 @@ compiler/interpreter. Some resources for learning Haskell can be found here:
 # Quick guide to contributing a change to Tidal
 
 As mentioned, the main repository is maintained on github:
-  https://github.com/tidalcycles/tidal
+  https://codeberg.org/uzu/tidal
 
 The main Tidal development branch is called 'main'.
 
@@ -113,7 +113,7 @@ First, you need to do the following:
 
 ## Create a Draft Release in GitHub
 
-* Draft a [new Tidal release](https://github.com/tidalcycles/Tidal/releases)
+* Draft a [new Tidal release](https://codeberg.org/uzu/Tidal/releases)
 * The name of the release will be the human-readable nickname (some traditional form of pattern making or something else that strikes your fancy)
 * For the tag, you can specify the next version in the form `v0.0.0` and GitHub will automatically tag the most recent commit whenever you publish the release
 * The "Generate Release Notes" is an easy way to list all the relevant updates and new contributors. Feel free to edit this further as needed
@@ -122,10 +122,10 @@ First, you need to do the following:
 ## Update the Repository
 
 Push any final changes to the code, updating the following files:
-* **[tidal.cabal](https://github.com/tidalcycles/Tidal/blob/1.10-dev/tidal.cabal)**: Change the version field
+* **[tidal.cabal](https://codeberg.org/uzu/tidal/src/branch/main/tidal.cabal)**: Change the version field
   * **Outdated Dependencies:** Run `cabal update` then `cabal outdated` to determine whether any of Tidal's dependencies are out of date, then update those as well
-* **[CHANGELOG.md](https://github.com/tidalcycles/Tidal/blob/1.10-dev/CHANGELOG.md)**: Add your new version at the top (you can copy the release notes from your draft GitHub release)
-* **[src/Sound/Tidal/Version.hs](https://github.com/tidalcycles/Tidal/blob/1.10-dev/src/Sound/Tidal/Version.hs)**: Update the version string here too. This is the version that's printed to the console when someone starts Tidal.
+* **[CHANGELOG.md](https://codeberg.org/uzu/tidal/src/branch/main/CHANGELOG.md)**: Add your new version at the top (you can copy the release notes from your draft GitHub release)
+* **[src/Sound/Tidal/Version.hs](https://codeberg.org/uzu/tidal/src/branch/main/src/Sound/Tidal/Version.hs)**: Update the version string here too. This is the version that's printed to the console when someone starts Tidal.
 * **If any of the other packages (e.g. tidal-link) have changed**: Update the respective **.cabal** files for these packages, and then update dependency information in **tidal.cabal** as needed.
 
 ## Test and Package the Repository

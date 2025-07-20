@@ -35,9 +35,9 @@ import Data.Bits (Bits, shiftL, shiftR, testBit, xor)
 import Data.Bool (bool)
 import Data.Char (digitToInt, isDigit, ord)
 import Data.Fixed (mod')
+import qualified Data.IntMap.Strict as IM
 import Data.List
   ( elemIndex,
-    findIndex,
     findIndices,
     groupBy,
     intercalate,
@@ -45,6 +45,7 @@ import Data.List
     sortOn,
     transpose,
   )
+import qualified Data.List as L
 import qualified Data.Map.Strict as Map
 import Data.Maybe
   ( fromJust,
@@ -925,8 +926,8 @@ euclid = patternify2 _euclid
 
 _euclid :: Int -> Int -> Pattern a -> Pattern a
 _euclid n k a
-  | n >= 0 = setSteps (Just $ pure $ toRational k) $ fastcat $ fmap (bool silence a) $ bjorklund (n, k)
-  | otherwise = setSteps (Just $ pure $ toRational k) $ fastcat $ fmap (bool a silence) $ bjorklund (-n, k)
+  | n >= 0 = setSteps (Just $ toRational k) $ fastcat $ fmap (bool silence a) $ bjorklund (n, k)
+  | otherwise = setSteps (Just $ toRational k) $ fastcat $ fmap (bool a silence) $ bjorklund (-n, k)
 
 -- |
 --
@@ -939,16 +940,16 @@ _euclid n k a
 --
 -- > d1 $ euclidFull 3 7 "realclaps" ("realclaps" # gain 0.8)
 euclidFull :: Pattern Int -> Pattern Int -> Pattern a -> Pattern a -> Pattern a
-euclidFull n k pa pb = setSteps (Just $ toRational <$> k) $ stack [euclid n k pa, euclidInv n k pb]
+euclidFull n k pa pb = setSteps (toRational <$> pureValue k) $ stack [euclid n k pa, euclidInv n k pb]
 
 -- | Less expressive than 'euclid' due to its constrained types, but may be more efficient.
 _euclidBool :: Int -> Int -> Pattern Bool -- TODO: add 'euclidBool'?
 _euclidBool n k
-  | n >= 0 = setSteps (Just $ pure $ toRational k) $ fastFromList $ bjorklund (n, k)
-  | otherwise = setSteps (Just $ pure $ toRational k) $ fastFromList $ fmap not $ bjorklund (-n, k)
+  | n >= 0 = setSteps (Just $ toRational k) $ fastFromList $ bjorklund (n, k)
+  | otherwise = setSteps (Just $ toRational k) $ fastFromList $ fmap not $ bjorklund (-n, k)
 
 _euclid' :: Int -> Int -> Pattern a -> Pattern a
-_euclid' n k p = setSteps (Just $ pure $ toRational k) $ fastcat $ map (\x -> if x then p else silence) (bjorklund (n, k))
+_euclid' n k p = setSteps (Just $ toRational k) $ fastcat $ map (\x -> if x then p else silence) (bjorklund (n, k))
 
 -- |
 -- As 'euclid', but taking a third rotational parameter corresponding to the onset
@@ -962,7 +963,7 @@ eoff = euclidOff
 
 _euclidOff :: Int -> Int -> Int -> Pattern a -> Pattern a
 _euclidOff _ 0 _ _ = silence
-_euclidOff n k s p = setSteps (Just $ pure $ toRational k) $ (rotL $ fromIntegral s % fromIntegral k) (_euclid n k p)
+_euclidOff n k s p = setSteps (Just $ toRational k) $ (rotL $ fromIntegral s % fromIntegral k) (_euclid n k p)
 
 -- | As 'euclidOff', but specialized to 'Bool'. May be more efficient than 'euclidOff'.
 euclidOffBool :: Pattern Int -> Pattern Int -> Pattern Int -> Pattern Bool -> Pattern Bool
@@ -970,7 +971,7 @@ euclidOffBool = patternify3 _euclidOffBool
 
 _euclidOffBool :: Int -> Int -> Int -> Pattern Bool -> Pattern Bool
 _euclidOffBool _ 0 _ _ = silence
-_euclidOffBool n k s p = setSteps (Just $ pure $ toRational k) $ rotL (fromIntegral s % fromIntegral k) ((\a b -> if b then a else not a) <$> _euclidBool n k <*> p)
+_euclidOffBool n k s p = setSteps (Just $ toRational k) $ rotL (fromIntegral s % fromIntegral k) ((\a b -> if b then a else not a) <$> _euclidBool n k <*> p)
 
 distrib :: [Pattern Int] -> Pattern a -> Pattern a
 distrib ps p = do
@@ -986,7 +987,7 @@ _distrib xs p = boolsToPat (foldr distrib' (replicate (last xs) True) (reverse $
     distrib' (True : a) (x : b) = x : distrib' a b
     distrib' (False : a) b = False : distrib' a b
     layers = map bjorklund . (zip <*> drop 1)
-    boolsToPat a b' = flip const <$> filterValues (== True) (fastFromList a) <* b'
+    boolsToPat a b' = const id <$> filterValues id (fastFromList a) <* b'
 
 -- | @euclidInv@ fills in the blanks left by `euclid`, i.e., it inverts the
 -- pattern.
@@ -1183,7 +1184,7 @@ segment :: Pattern Time -> Pattern a -> Pattern a
 segment = patternify _segment
 
 _segment :: Time -> Pattern a -> Pattern a
-_segment n p = setSteps (Just $ pure n) $ _fast n (pure id) <* p
+_segment n p = setSteps (Just n) $ _fast n (pure id) <* p
 
 -- | @discretise@: the old (deprecated) name for 'segment'
 discretise :: Pattern Time -> Pattern a -> Pattern a
@@ -1427,12 +1428,16 @@ lindenmayerI n r s = fmap (fromIntegral . digitToInt) $ lindenmayer n r s
 -- transition probability from state 0->0 is 2/5, 0->1 is 3/5, 1->0 is 1/4, and
 -- 1->1 is 3/4.
 runMarkov :: Int -> [[Double]] -> Int -> Time -> [Int]
-runMarkov n tp xi seed = reverse $ (iterate (markovStep $ renorm) [xi]) !! (n - 1)
+runMarkov n tp xi seed = take n $ map fst $ L.iterate' (markovStep renorm) (xi, seed + delta)
   where
-    markovStep tp' xs = (fromJust $ findIndex (r <=) $ scanl1 (+) (tp' !! (head xs))) : xs
+    markovStep tp' (x, seed') = (let v = tp' IM.! x in findIndex (r * fst (Map.findMax v)) v, seed' + delta)
       where
-        r = timeToRand $ seed + (fromIntegral . length) xs / fromIntegral n
-    renorm = [map (/ sum x) x | x <- tp]
+        r = timeToRand seed'
+    renorm :: IM.IntMap (Map.Map Double Int)
+    renorm = IM.fromList $ zip [0 ..] [Map.fromList $ zip (tail $ scanl (+) 0 x) [0 ..] | x <- tp]
+    findIndex :: Double -> Map.Map Double Int -> Int
+    findIndex x v = maybe 0 snd (Map.lookupGE x v)
+    delta = 1 / fromIntegral n
 
 -- | @markovPat n xi tp@ generates a one-cycle pattern of @n@ steps in a Markov
 -- chain starting from state @xi@ with transition matrix @tp@. Each row of the
@@ -1452,7 +1457,7 @@ markovPat = patternify2 _markovPat
 
 _markovPat :: Int -> Int -> [[Double]] -> Pattern Int
 _markovPat n xi tp =
-  setSteps (Just $ pure $ toRational n) $
+  setSteps (Just $ toRational n) $
     splitQueries $
       pattern
         ( \(State a@(Arc s _) _) ->
@@ -2057,7 +2062,7 @@ rolledBy "<1 -0.5 0.25 -0.125>" $ note "c'maj9" # s "superpiano"
 @
 -}
 rolledBy :: Pattern (Ratio Integer) -> Pattern a -> Pattern a
-rolledBy pt = patternify rolledWith (segment 1 $ pt)
+rolledBy pt = patternify rolledWith (segment 1 pt)
 
 rolledWith :: Ratio Integer -> Pattern a -> Pattern a
 rolledWith t = withEvents aux
@@ -2220,10 +2225,7 @@ sew :: Pattern Bool -> Pattern a -> Pattern a -> Pattern a
 -- sew pb a b = overlay (mask pb a) (mask (inv pb) b)
 sew pb a b = Pattern pf psteps Nothing
   where
-    psteps = do
-      sa <- steps a
-      sb <- steps b
-      return $ pb >>= \v -> if v then sa else sb
+    psteps = pureValue pb >>= \v -> if v then steps a else steps b
     pf st = concatMap match evs
       where
         evs = query pb st
@@ -2430,7 +2432,7 @@ cross f p p' = pattern $ \t -> concat [filter flt $ arc p t,
 -- > d1 $ jux (iter 4) $ sound "arpy arpy:2*2"
 -- >   |+ speed (slow 4 $ sine1 * 0.5 + 1)
 range :: (Num a) => Pattern a -> Pattern a -> Pattern a -> Pattern a
-range fromP toP p = (\from to v -> ((v * (to - from)) + from)) <$> fromP *> toP *> p
+range fromP toP p = (\from to v -> (v * (to - from)) + from) <$> fromP *> toP *> p
 
 _range :: (Functor f, Num b) => b -> b -> f b -> f b
 _range from to p = (+ from) . (* (to - from)) <$> p
@@ -2834,7 +2836,7 @@ deconstruct n p = unwords $ map showStep $ toList p
     showStep :: [String] -> String
     showStep [] = "~"
     showStep [x] = x
-    showStep xs = "[" ++ (intercalate ", " xs) ++ "]"
+    showStep xs = "[" ++ intercalate ", " xs ++ "]"
     toList :: Pattern a -> [[a]]
     toList pat = map (\(s, e) -> map value $ queryArc (_segment n' pat) (Arc s e)) arcs
       where
@@ -2893,7 +2895,7 @@ squeezeJoinUp pp = pp {query = q, pureValue = Nothing}
 _chew :: Int -> Pattern Int -> ControlPattern -> ControlPattern
 _chew n ipat pat = squeezeJoinUp (zoomslice <$> ipat) |/ P.speed (pure $ fromIntegral n)
   where
-    zoomslice i = zoom (i' / (fromIntegral n), (i' + 1) / (fromIntegral n)) (pat)
+    zoomslice i = zoom (i' / fromIntegral n, (i' + 1) / fromIntegral n) pat
       where
         i' = fromIntegral $ i `mod` n
 
@@ -2915,7 +2917,7 @@ _binary :: (Data.Bits.Bits b) => Int -> b -> Pattern Bool
 _binary n num = listToPat $ __binary n num
 
 _binaryN :: Int -> Pattern Int -> Pattern Bool
-_binaryN n p = setSteps (Just $ pure $ toRational n) $ squeezeJoin $ _binary n <$> p
+_binaryN n p = setSteps (Just $ toRational n) $ squeezeJoin $ _binary n <$> p
 
 binaryN :: Pattern Int -> Pattern Int -> Pattern Bool
 binaryN n p = patternify _binaryN n p
@@ -2949,11 +2951,11 @@ grain s w = P.begin b # P.end e
 -- the same as "t f f f t f t f f f t f". That is, 12 steps per cycle,
 -- with true values alternating between every 4 and every 2 steps.
 necklace :: Rational -> [Int] -> Pattern Bool
-necklace perCycle xs = _slow ((toRational $ sum xs) / perCycle) $ listToPat $ list xs
+necklace perCycle xs = _slow (toRational (sum xs) / perCycle) $ listToPat $ list xs
   where
     list :: [Int] -> [Bool]
     list [] = []
-    list (x : xs') = (True : (replicate (x - 1) False)) ++ list xs'
+    list (x : xs') = (True : replicate (x - 1) False) ++ list xs'
 
 -- | Inserts chromatic notes into a pattern.
 --
@@ -2965,7 +2967,7 @@ necklace perCycle xs = _slow ((toRational $ sum xs) / perCycle) $ listToPat $ li
 -- > d1 $ up (chromaticiseBy "0 1 2 -1" "[0 2] [3 6] [5 6 8] [3 1 0]") # s "superpiano"
 -- > d1 $ up "[0 2] [[3 4] [6 7]] [[5 6 7] [6 7 8] [8 9 10] [[3 2] [1 0] [0 -1]]" # s "superpiano"
 chromaticiseBy :: (Num a, Enum a, Ord a) => Pattern a -> Pattern a -> Pattern a
-chromaticiseBy n pat = innerJoin $ (\np -> _chromaticiseBy np pat) <$> n
+chromaticiseBy n pat = innerJoin $ (`_chromaticiseBy` pat) <$> n
 
 _chromaticiseBy :: (Num a, Enum a, Ord a) => a -> Pattern a -> Pattern a
 _chromaticiseBy n pat =
@@ -2984,3 +2986,28 @@ _chromaticiseBy n pat =
 -- | Alias for chromaticiseBy
 chromaticizeBy :: (Num a, Enum a, Ord a) => Pattern a -> Pattern a -> Pattern a
 chromaticizeBy = chromaticiseBy
+
+_ribbon :: Time -> Time -> Pattern a -> Pattern a
+_ribbon offset cycles pat = restart (_slow cycles $ pure True) $ offset `rotL` pat
+
+-- | Loops a pattern inside an `offset` for `cycles`. If you think of the entire
+-- span of time in cycles as a ribbon, you can cut a single piece and loop it.
+ribbon :: Pattern Time -> Pattern Time -> Pattern a -> Pattern a
+ribbon = patternify2 _ribbon
+
+-- | Shorthand for `ribbon`.
+rib :: Pattern Time -> Pattern Time -> Pattern a -> Pattern a
+rib = ribbon
+
+-- | Turns a pattern into a pattern of patterns, according to the structure of another given pattern.
+unjoin :: Pattern Bool -> Pattern b -> Pattern (Pattern b)
+unjoin pieces pat = withEvent snip pieces
+  where
+    -- If true, set value to the part of pattern looped at event boundaries
+    snip e@Event {value = True} = e {value = _ribbon (wholeStart e) (wholeStop e - wholeStart e) pat}
+    -- Otherwise, set value to unchanged pattern
+    snip e = e {value = pat}
+
+-- | Applies a function to subcycles of a pattern, as defined by the structure of another given pattern.
+into :: Pattern Bool -> (Pattern a -> Pattern b) -> Pattern a -> Pattern b
+into pieces func pat = innerJoin $ fmap func $ unjoin pieces pat

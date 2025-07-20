@@ -1,7 +1,7 @@
 cabal-version:       2.0
 
 name:                tidal
-version:             1.10.0
+version:             1.10.1
 synopsis:            Pattern language for improvised music
 description:         Tidal is a domain specific language for live coding patterns.
 homepage:            http://tidalcycles.org/
@@ -29,12 +29,12 @@ library
 
   Exposed-modules:    
                        Sound.Tidal.Boot
+                       Sound.Tidal.Config
                        Sound.Tidal.Context
                        Sound.Tidal.ID
                        Sound.Tidal.Safe.Context
                        Sound.Tidal.Safe.Boot
                        Sound.Tidal.Stream
-                       Sound.Tidal.Stream.Config
                        Sound.Tidal.Stream.Listen
                        Sound.Tidal.Stream.Main
                        Sound.Tidal.Stream.Process
@@ -46,7 +46,7 @@ library
                        Paths_tidal
   Build-depends:
       base >=4.8 && <5
-    , containers < 0.8
+    , containers < 0.9
     , colour < 2.4
     , hosc >= 0.21 && < 0.22
     , text < 2.2
@@ -60,8 +60,8 @@ library
     , random < 1.4
     , exceptions < 0.11
     , mtl >= 2.2 && < 2.4
-    , tidal-link >= 1.1 && < 1.2
-    , tidal-core == 1.10
+    , tidal-link >= 1.2 && < 1.3
+    , tidal-core == 1.10.1
 
 test-suite tests
   type: exitcode-stdio-1.0
@@ -131,4 +131,4 @@ benchmark bench-memory
 
 source-repository head
   type:     git
-  location: https://github.com/tidalcycles/Tidal
+  location: https://codeberg.org/uzu/tidal

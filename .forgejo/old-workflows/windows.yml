@@ -1,0 +1,52 @@
+name: Windows
+on:
+  push:
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+
+jobs:
+  cabal:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        versions:
+          # ghcup recommended
+          - ghc: 9.4.8
+            cabal: 3.12.1.0
+            args: --allow-newer=base,template-haskell
+            experimental: false
+
+    continue-on-error: ${{ matrix.versions.experimental }}
+    name: cabal ${{ matrix.versions.cabal }} - ghc ${{ matrix.versions.ghc }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: cache ~/.cabal/packages, ~/.cabal/store and dist-newstyle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/packages
+            ~/.cabal/store
+            dist-newstyle
+          key: cabal-${{ runner.os }}-${{ matrix.versions.ghc }}
+
+      - name: install cabal and ghc
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: ${{ matrix.versions.ghc }}
+          cabal-version: ${{ matrix.versions.cabal }}
+
+      - name: update
+        run: cabal v2-update
+
+      - name: build
+        run: cabal v2-build ${{ matrix.versions.args }} --enable-tests --enable-benchmarks ./ tidal-core tidal-parse tidal-parse-ffi tidal-listener tidal-link tidal-tap
+
+      - name: test
+        run: cabal v2-test ${{ matrix.versions.args }} --enable-tests --enable-benchmarks ./ tidal-core tidal-parse tidal-parse-ffi 
+

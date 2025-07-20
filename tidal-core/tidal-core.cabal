@@ -1,7 +1,7 @@
 cabal-version: 2.0
 
 name: tidal-core
-version: 1.10
+version: 1.10.1
 
 license: GPL-3
 copyright:           (c) Alex McLean and other contributors, 2025
@@ -45,7 +45,7 @@ library
 
   build-depends:
     base >=4.8 && <5,
-    containers <0.8,
+    containers <0.9,
     colour <2.4,
     text <2.2,
     parsec >=3.1.12 && <3.2,
@@ -81,4 +81,4 @@ test-suite tests
 
 source-repository head
   type: git
-  location: https://github.com/tidalcycles/Tidal
+  location: https://codeberg.org/uzu/tidal

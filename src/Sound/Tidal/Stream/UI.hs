@@ -7,9 +7,9 @@ import Control.Concurrent.MVar
 import qualified Control.Exception as E
 import qualified Data.Map as Map
 import qualified Sound.Tidal.Clock as Clock
+import Sound.Tidal.Config
 import Sound.Tidal.ID
 import Sound.Tidal.Pattern
-import Sound.Tidal.Stream.Config
 import Sound.Tidal.Stream.Process
 import Sound.Tidal.Stream.Types
 import System.IO (hPutStrLn, stderr)
@@ -25,19 +25,27 @@ streamSetCycle :: Stream -> Time -> IO ()
 streamSetCycle s = Clock.setClock (sClockRef s)
 
 streamSetCPS :: Stream -> Time -> IO ()
-streamSetCPS s = Clock.setCPS (cClockConfig $ sConfig s) (sClockRef s)
+streamSetCPS s = Clock.setCPS (toClockConfig $ sConfig s) (sClockRef s)
 
 streamSetBPM :: Stream -> Time -> IO ()
 streamSetBPM s = Clock.setBPM (sClockRef s)
 
 streamGetCPS :: Stream -> IO Time
-streamGetCPS s = Clock.getCPS (cClockConfig $ sConfig s) (sClockRef s)
+streamGetCPS s = Clock.getCPS (toClockConfig $ sConfig s) (sClockRef s)
+
+-- Deprecated - compat with old style BootTidal.hs
+streamGetcps :: Stream -> IO Time
+streamGetcps = streamGetCPS
 
 streamGetBPM :: Stream -> IO Time
 streamGetBPM s = Clock.getBPM (sClockRef s)
 
 streamGetNow :: Stream -> IO Time
-streamGetNow s = Clock.getCycleTime (cClockConfig $ sConfig s) (sClockRef s)
+streamGetNow s = Clock.getCycleTime (toClockConfig $ sConfig s) (sClockRef s)
+
+-- Deprecated - compat with old style BootTidal.hs
+streamGetnow :: Stream -> IO Time
+streamGetnow = streamGetNow
 
 streamEnableLink :: Stream -> IO ()
 streamEnableLink s = Clock.enableLink (sClockRef s)
@@ -57,16 +65,11 @@ streamList s = do
     showKV False (k, (PlayState {psSolo = False})) = k ++ "\n"
     showKV False (k, _) = "(" ++ k ++ ") - muted\n"
 
+-- Evaluation of pat is forced so exceptions are picked up here, before replacing the existing pattern.
 streamReplace :: Stream -> ID -> ControlPattern -> IO ()
 streamReplace stream k !pat = do
-  t <- Clock.getCycleTime (cClockConfig $ sConfig stream) (sClockRef stream)
-  E.handle
-    ( \(e :: E.SomeException) -> do
-        hPutStrLn stderr $ "Failed to Stream.streamReplace: " ++ show e
-        hPutStrLn stderr "Return to previous pattern."
-        setPreviousPatternOrSilence (sPMapMV stream)
-    )
-    (updatePattern stream k t pat)
+  t <- Clock.getCycleTime (toClockConfig $ sConfig stream) (sClockRef stream)
+  updatePattern stream k t pat
 
 -- streamFirst but with random cycle instead of always first cicle
 streamOnce :: Stream -> ControlPattern -> IO ()
@@ -75,7 +78,7 @@ streamOnce st p = do
   streamFirst st $ rotL (toRational (i :: Int)) p
 
 streamFirst :: Stream -> ControlPattern -> IO ()
-streamFirst stream pat = onSingleTick (cClockConfig $ sConfig stream) (sClockRef stream) (sStateMV stream) (sPMapMV stream) (sGlobalFMV stream) (sCxs stream) pat
+streamFirst stream pat = onSingleTick (toClockConfig $ sConfig stream) (sClockRef stream) (sStateMV stream) (sPMapMV stream) (sGlobalFMV stream) (sCxs stream) pat
 
 streamMute :: Stream -> ID -> IO ()
 streamMute s k = withPatIds s [k] (\x -> x {psMute = True})
