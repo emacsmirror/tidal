@@ -750,14 +750,14 @@ _slow r p = _fast (1 / r) p
 _fastGap :: Time -> Pattern a -> Pattern a
 _fastGap 0 _ = empty
 _fastGap r p =
-  splitQueries $
-    withResultArc
+  splitQueries
+    $ withResultArc
       ( \(Arc s e) ->
           Arc
             (sam s + ((s - sam s) / r'))
             (sam s + ((e - sam s) / r'))
       )
-      $ p {query = f}
+    $ p {query = f}
   where
     r' = max r 1
     -- zero width queries of the next sam should return zero in this case..
