@@ -90,6 +90,7 @@ run = describe "tidal-mondo" do
         itEval "(s bd <sd [hh oh]>)" $ T.sound "bd <sd [hh oh]>"
         itEval "(s bd # fast 2)" $ T.fast 2 $ T.sound "bd"
         itEval "(s bd # slow 2)" $ T.slow 2 $ T.sound "bd"
+        itEval "s bd # fast 2 # lpf 50" $ T.fast 2 $ T.sound "bd" # T.cutoff 50
         itEval "s bd # lpf 50" $ T.sound "bd" # T.cutoff 50
         itEval "s bd (sd # lpf 50)" $ T.fastCat [T.sound "bd", T.sound "sd" # T.cutoff 50]
         itEval
