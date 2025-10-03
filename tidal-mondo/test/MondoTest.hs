@@ -92,6 +92,14 @@ run = describe "tidal-mondo" do
         itEval "(s bd # slow 2)" $ T.slow 2 $ T.sound "bd"
         itEval "s bd # lpf 50" $ T.sound "bd" # T.cutoff 50
         itEval "s bd (sd # lpf 50)" $ T.fastCat [T.sound "bd", T.sound "sd" # T.cutoff 50]
+        itEval
+            ( unlines
+                [ "s <[bd sd] // love this"
+                , "  [cp] // cool bit"
+                , ">"
+                ]
+            )
+            $ T.sound "<[bd sd] [cp]>"
   where
     parseTest = clearLoc . either (error . show) id . mondoToExpr
     clearLoc v = case v of
