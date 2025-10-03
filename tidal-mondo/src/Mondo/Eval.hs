@@ -6,7 +6,6 @@
 
 module Mondo.Eval where
 
-import Data.List (unsnoc)
 import GHC.Float (float2Double)
 
 import Sound.Tidal.Core ((#))
@@ -84,10 +83,11 @@ getString expr = case expr of
 
 resolve_seq :: (T.Parseable a, T.Enumerable a) => String -> (T.Pattern a -> T.ControlPattern) -> (MondoExpr -> Maybe (Positioned a)) -> MondoExpr -> Either ParseError T.ControlPattern
 resolve_seq com app get expr = case expr of
-    MList xs@(MPlain _ : _) -> case unsnoc xs of
-        Nothing -> error "The impossible has happened"
-        Just (i, l) -> do
-            eval_list $ i <> [MList [MPlain (Positioned com 0 0), l]]
+    -- `s bd (hh # lpf 42)` is desugared to `(s bd (lpf 50 sd))`, and here,
+    -- when we process `(lpf 50 sd)`, the following case rewrite it as: (lpf 50 (s sd))
+    MList xs@(MPlain _ : _) ->
+        let (i, l) = (init xs, last xs)
+         in eval_list $ i <> [MList [MPlain (Positioned com 0 0), l]]
     _ -> app <$> eval_pat get expr
 
 patWithPos :: Positioned a -> T.Pattern a
