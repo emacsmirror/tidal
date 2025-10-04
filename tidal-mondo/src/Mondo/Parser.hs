@@ -87,7 +87,7 @@ desugar_pipes xs =
     let (right, rest) = span (isSplit ["#"]) (reverse xs)
      in case rest of
             [] -> reverse right
-            (_ : left) -> reverse right <> [MList $ desugar_list $ reverse left]
+            (_ : left) -> reverse right <> [MList $ desugar_pipes $ reverse left]
 
 isSplit :: [String] -> MondoExpr -> Bool
 isSplit s e = case e of
