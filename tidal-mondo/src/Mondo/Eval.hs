@@ -27,24 +27,27 @@ eval v = mkError ("expected a list, got: " <> show v) (P.newPos "input" 1 1)
 pattern Com :: String -> MondoExpr
 pattern Com s <- MPlain (Pos s)
 
+data TidalPat a
+    = Before (T.Pattern a -> T.ControlPattern -> T.ControlPattern)
+    | After (T.Pattern a -> T.ControlPattern)
+
 eval_list :: [MondoExpr] -> Either ParseError T.ControlPattern
 eval_list xs = case xs of
     (Com "s" : rest) -> T.fastCat <$> traverse (resolve_seq "s" T.sound getString) rest
-    [Com "lpf", param, MList rest] -> eval_pos param rest getDouble T.cutoff
-    [Com "fast", param, MList rest] -> eval_pre param rest getTime T.fast
-    [Com "slow", param, MList rest] -> eval_pre param rest getTime T.slow
+    (Com "lpf" : xs) -> eval_control getDouble (After T.cutoff) xs
+    (Com "fast" : xs) -> eval_control getTime (Before T.fast) xs
+    (Com "slow" : xs) -> eval_control getTime (Before T.slow) xs
     x : _ -> mkError ("unexpected command: " <> show xs) (exprPos x)
     [] -> mkError "expected command!" (P.newPos "input" 1 1)
   where
-    eval_pos param rest get app = do
-        controlPat <- eval_list rest
-        paramPat <- eval_pat get param
-        pure $ controlPat # app paramPat
-    eval_pre param rest get app = do
-        controlPat <- eval_list rest
-        paramPat <- eval_pat get param
-        pure $ app paramPat controlPat
-
+    eval_control get app xs = case (init xs, last xs) of
+        (params, MList rest) -> do
+            paramPat <- T.fastCat <$> traverse (eval_pat get) params
+            controlPat <- eval_list rest
+            pure $ case app of
+                After app -> controlPat # app paramPat
+                Before app -> app paramPat controlPat
+        _ -> mkError ("invalid control pattern: " <> show xs) (exprPos $ head xs)
 eval_pat :: (T.Parseable a, T.Enumerable a) => (MondoExpr -> Maybe (Positioned a)) -> MondoExpr -> Either ParseError (T.Pattern a)
 eval_pat get expr = case expr of
     (MString p) -> case T.parseBP p.value of
