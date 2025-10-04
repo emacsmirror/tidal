@@ -8,12 +8,13 @@ module Mondo.Eval where
 
 import GHC.Float (float2Double)
 
-import Sound.Tidal.Core ((#))
+import Sound.Tidal.Core ((#), (|+|))
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
 import Sound.Tidal.ParseBP qualified as T
 import Sound.Tidal.Pattern qualified as T
 import Text.Parsec (ParseError)
+import Text.Parsec qualified as P
 import Text.Parsec.Error qualified as P
 import Text.Parsec.Pos qualified as P
 
@@ -33,7 +34,17 @@ data TidalPat a
 
 eval_list :: [MondoExpr] -> Either ParseError T.ControlPattern
 eval_list xs = case xs of
+    -- s is expected to be at the begining of a pattern
     (Com "s" : rest) -> T.fastCat <$> traverse (resolve_seq "s" T.sound getString) rest
+    (Com "n" : rest)
+        | -- note after sound, e.g. 's sine # n c2'
+          (params, MList sound@(Com "s" : _)) <- (init rest, last xs) -> do
+            soundControl <- eval_list sound
+            noteControl <- T.fastCat <$> traverse (resolve_seq "n" T.n getNote) params
+            pure $ soundControl |+| noteControl
+        | -- standalone n, without sound, e.g. for midi. This is also expected to be at the begining of a pattern
+          otherwise ->
+            T.fastCat <$> traverse (resolve_seq "n" T.n getNote) rest
     (Com "lpf" : xs) -> eval_control getDouble (After T.cutoff) xs
     (Com "fast" : xs) -> eval_control getTime (Before T.fast) xs
     (Com "slow" : xs) -> eval_control getTime (Before T.slow) xs
@@ -48,7 +59,8 @@ eval_list xs = case xs of
                 After app -> controlPat # app paramPat
                 Before app -> app paramPat controlPat
         _ -> mkError ("invalid control pattern: " <> show xs) (exprPos $ head xs)
-eval_pat :: (T.Parseable a, T.Enumerable a) => (MondoExpr -> Maybe (Positioned a)) -> MondoExpr -> Either ParseError (T.Pattern a)
+
+eval_pat :: (T.Parseable a, T.Enumerable a) => (MondoExpr -> Maybe (T.Pattern a)) -> MondoExpr -> Either ParseError (T.Pattern a)
 eval_pat get expr = case expr of
     (MString p) -> case T.parseBP p.value of
         Left err ->
@@ -61,7 +73,7 @@ eval_pat get expr = case expr of
     (MList (MCommand "square" : xs)) -> T.fastcat <$> traverse (eval_pat get) xs
     (MList [MCommand "*", param, val]) -> eval_op getTime T.fast param val
     _ -> case get expr of
-        Just v -> Right (patWithPos v)
+        Just v -> pure v
         Nothing -> mkError ("unexpected pat: " <> show expr) (exprPos expr)
   where
     eval_op getp app param val = do
@@ -69,22 +81,29 @@ eval_pat get expr = case expr of
         valPat <- eval_pat get val
         pure $ app paramPat valPat
 
-getDouble :: MondoExpr -> Maybe (Positioned Double)
+getDouble :: MondoExpr -> Maybe (T.Pattern Double)
 getDouble expr = case expr of
-    MValue v -> Just $ float2Double <$> v
+    MValue v -> Just . patWithPos $ float2Double <$> v
     _ -> Nothing
 
-getTime :: MondoExpr -> Maybe (Positioned T.Time)
+getTime :: MondoExpr -> Maybe (T.Pattern T.Time)
 getTime expr = case expr of
-    MValue v -> Just $ toRational <$> v
+    MValue v -> Just . patWithPos $ toRational <$> v
     _ -> Nothing
 
-getString :: MondoExpr -> Maybe (Positioned String)
+getString :: MondoExpr -> Maybe (T.Pattern String)
 getString expr = case expr of
-    MPlain s -> Just s
+    MPlain s -> Just . patWithPos $ s
     _ -> Nothing
 
-resolve_seq :: (T.Parseable a, T.Enumerable a) => String -> (T.Pattern a -> T.ControlPattern) -> (MondoExpr -> Maybe (Positioned a)) -> MondoExpr -> Either ParseError T.ControlPattern
+getNote :: MondoExpr -> Maybe (T.Pattern T.Note)
+getNote expr = case expr of
+    MPlain s -> case P.runParser T.pNote 0 "input" s.value of
+        Left err -> error (show err)
+        Right v -> Just (T.withContext (addPos s) $ T.toPat v)
+    _ -> Nothing
+
+resolve_seq :: (T.Parseable a, T.Enumerable a) => String -> (T.Pattern a -> T.ControlPattern) -> (MondoExpr -> Maybe (T.Pattern a)) -> MondoExpr -> Either ParseError T.ControlPattern
 resolve_seq com app get expr = case expr of
     -- `s bd (hh # lpf 42)` is desugared to `(s bd (lpf 50 sd))`, and here,
     -- when we process `(lpf 50 sd)`, the following case rewrite it as: (lpf 50 (s sd))

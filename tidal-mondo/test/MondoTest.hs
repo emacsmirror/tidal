@@ -6,7 +6,7 @@
 module MondoTest where
 
 import Data.List (sort)
-import Sound.Tidal.Core ((#))
+import Sound.Tidal.Core ((#), (|+|))
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
 import Sound.Tidal.ParseBP ()
@@ -222,6 +222,11 @@ run = describe "tidal-mondo" do
                 ]
             )
             $ T.sound "<[bd sd] [cp]>"
+
+        itEval "n c2 c3" do
+            T.n "c2 c3"
+        itEval "s sine # n c2 c3" do
+            T.sound "sine" |+| T.n "c2 c3"
   where
     play :: String -> T.ControlPattern
     play = either (error . show) id . mondoToTidal
