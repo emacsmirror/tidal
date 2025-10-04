@@ -48,6 +48,7 @@ eval_list xs = case xs of
     (Com "lpf" : xs) -> eval_control getDouble (After T.cutoff) xs
     (Com "fast" : xs) -> eval_control getTime (Before T.fast) xs
     (Com "slow" : xs) -> eval_control getTime (Before T.slow) xs
+    (MCommand "stack" : xs) -> T.stack <$> traverse eval xs
     x : _ -> mkError ("unexpected command: " <> show xs) (exprPos x)
     [] -> mkError "expected command!" (P.newPos "input" 1 1)
   where
