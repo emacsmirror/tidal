@@ -97,15 +97,25 @@ getString expr = case expr of
     MPlain s -> Just . patWithPos $ s
     _ -> Nothing
 
+getFloat :: MondoExpr -> Maybe (T.Pattern Double)
+getFloat expr = case expr of
+    MValue v -> Just . patWithPos $ float2Double <$> v
+    _ -> Nothing
+
 getNote :: MondoExpr -> Maybe (T.Pattern T.Note)
 getNote expr = case expr of
     MPlain s -> case P.runParser T.pNote 0 "input" s.value of
         Left err -> error (show err)
         Right v -> Just (T.withContext (addPos s) $ T.toPat v)
+    MValue v -> Just . patWithPos $ T.Note . float2Double <$> v
     _ -> Nothing
 
 resolve_seq :: (T.Parseable a, T.Enumerable a) => String -> (T.Pattern a -> T.ControlPattern) -> (MondoExpr -> Maybe (T.Pattern a)) -> MondoExpr -> Either ParseError T.ControlPattern
 resolve_seq com app get expr = case expr of
+    MList [MCommand ":", note, sound] -> do
+        soundPat <- eval_pat get sound
+        notePat <- eval_pat getFloat note
+        pure $ app soundPat |+| T.pF "n" notePat
     -- `s bd (hh # lpf 42)` is desugared to `(s bd (lpf 50 sd))`, and here,
     -- when we process `(lpf 50 sd)`, the following case rewrite it as: (lpf 50 (s sd))
     MList xs@(MPlain _ : _) ->

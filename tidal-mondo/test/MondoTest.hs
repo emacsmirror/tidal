@@ -235,6 +235,10 @@ run = describe "tidal-mondo" do
             T.sound "sine" |+| T.n "c2 c3"
         itEval "$ s a $ s b $ s c # lpf 50" do
             T.stack [T.s "a", T.s "b", T.s "c" # T.cutoff 50]
+        itEval "s bd:1" do
+            T.sound "bd:1"
+        itEval "s bd:<1 2>" do
+            T.sound "<bd:1 bd:2>"
   where
     play :: String -> T.ControlPattern
     play = either (error . show) id . mondoToTidal
