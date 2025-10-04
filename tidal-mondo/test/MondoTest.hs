@@ -245,6 +245,8 @@ run = describe "tidal-mondo" do
             T.sound "<bd:1 bd:2>"
         itEval "n (0 1 2 # scale minor)" do
             T.scale "minor" "0 1 2"
+        itEval "n 0 1 2 # lpf 10 # scale minor" do
+            T.scale "minor" "0 1 2" # T.cutoff 10
   where
     play :: String -> T.ControlPattern
     play = either (error . show) id . mondoToTidal

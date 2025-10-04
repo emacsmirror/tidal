@@ -24,7 +24,7 @@ import Mondo.Parser
 import Mondo.Token
 
 eval :: MondoExpr -> Either ParseError T.ControlPattern
-eval (MList xs) = eval_list xs
+eval (MList xs) = eval_list newEnv xs
 eval v = mkError ("expected a list, got: " <> show v) (P.newPos "input" 1 1)
 
 pattern Com :: String -> MondoExpr
@@ -34,30 +34,46 @@ data TidalPat a
     = Before (T.Pattern a -> T.ControlPattern -> T.ControlPattern)
     | After (T.Pattern a -> T.ControlPattern)
 
-eval_list :: [MondoExpr] -> Either ParseError T.ControlPattern
-eval_list es = case es of
+data Env = Env {envScale :: Maybe (T.Pattern Int -> T.ControlPattern)}
+
+newEnv :: Env
+newEnv = Env Nothing
+
+eval_list :: Env -> [MondoExpr] -> Either ParseError T.ControlPattern
+eval_list env es = case es of
     -- s is expected to be at the begining of a pattern
     (Com "s" : rest) -> T.fastCat <$> traverse (eval_last "s" T.sound getString) rest
     (Com "n" : rest)
         | -- note after sound, e.g. 's sine # n c2'
           Just (params, MList sound@(Com "s" : _)) <- unsnoc rest -> do
-            soundControl <- eval_list sound
-            noteControl <- T.fastCat <$> traverse (eval_last "n" T.n getNote) params
+            soundControl <- eval_list env sound
+            noteControl <- eval_notes params
             pure $ soundControl |+| noteControl
         | -- standalone n, without sound, e.g. for midi. This is also expected to be at the begining of a pattern
           otherwise ->
-            T.fastCat <$> traverse (eval_last "n" T.n getNote) rest
+            eval_notes rest
     (Com "lpf" : rest) -> eval_control getDouble (After T.cutoff) rest
     (Com "fast" : rest) -> eval_control getTime (Before T.fast) rest
     (Com "slow" : rest) -> eval_control getTime (Before T.slow) rest
+    (Com "scale" : rest)
+        | -- scale pipe, e.g. 'n 0 # scale minor'
+          Just (params, MList xs) <- unsnoc rest -> do
+            scalePat <- eval_pats getString params
+            -- add the scale to the env, and apply it later when encountering notes.
+            eval_list (env{envScale = Just (T.scale scalePat)}) xs
     (MCommand "stack" : rest) -> T.stack <$> traverse eval rest
     x : _ -> mkError ("unexpected command: " <> show es) (exprPos x)
     [] -> mkError "expected command!" (P.newPos "input" 1 1)
   where
+    eval_notes xs = case env.envScale of
+        -- No scale defined, eval notes from pattern
+        Nothing -> T.fastCat <$> traverse (eval_last "n" T.n getNote) xs
+        -- Scale was piped, eval int from pattern
+        Just scale -> T.fastCat <$> traverse (eval_last "n" scale getInt) xs
     eval_control get app xs
         | Just (params, MList rest) <- unsnoc xs = do
             paramPat <- eval_pats get params
-            controlPat <- eval_list rest
+            controlPat <- eval_list env rest
             pure $ case app of
                 After aapp -> controlPat # aapp paramPat
                 Before bapp -> bapp paramPat controlPat
@@ -106,7 +122,7 @@ eval_last com app get expr = case expr of
     -- when we process `(lpf 50 sd)`, the following case rewrite it as: (lpf 50 (s sd))
     MList xs@(MPlain _ : _) ->
         let (i, l) = (init xs, last xs)
-         in eval_list $ i <> [MList [MPlain (Positioned com 0 0), l]]
+         in eval_list newEnv $ i <> [MList [MPlain (Positioned com 0 0), l]]
     _ -> app <$> eval_pat get expr
 
 getDouble :: MondoExpr -> Maybe (T.Pattern Double)
