@@ -11,6 +11,7 @@ import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
 import Sound.Tidal.ParseBP ()
 import Sound.Tidal.Pattern qualified as T
+import Sound.Tidal.Scales qualified as T
 import Sound.Tidal.Show ()
 import Test.Hspec
 
@@ -194,6 +195,9 @@ run = describe "tidal-mondo" do
             desguar "[jazz hh.(.fast 2)]"
                 `shouldBe` "(square jazz (fast 2 hh))"
         -}
+        it "should desugar scale" do
+            desguar "n (0 1 2 # scale minor)"
+                `shouldBe` "(n (scale minor (0 1 2)))"
         pure ()
 
     describe "mondo tidal" do
@@ -239,6 +243,8 @@ run = describe "tidal-mondo" do
             T.sound "bd:1"
         itEval "s bd:<1 2>" do
             T.sound "<bd:1 bd:2>"
+        itEval "n (0 1 2 # scale minor)" do
+            T.scale "minor" "0 1 2"
   where
     play :: String -> T.ControlPattern
     play = either (error . show) id . mondoToTidal

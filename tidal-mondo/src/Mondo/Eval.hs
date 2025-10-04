@@ -13,6 +13,7 @@ import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
 import Sound.Tidal.ParseBP qualified as T
 import Sound.Tidal.Pattern qualified as T
+import Sound.Tidal.Scales qualified as T
 import Text.Parsec (ParseError)
 import Text.Parsec qualified as P
 import Text.Parsec.Error qualified as P
@@ -61,6 +62,9 @@ eval_list xs = case xs of
                 Before app -> app paramPat controlPat
         _ -> mkError ("invalid control pattern: " <> show xs) (exprPos $ head xs)
 
+eval_pats :: (T.Parseable a, T.Enumerable a) => (MondoExpr -> Maybe (T.Pattern a)) -> [MondoExpr] -> Either ParseError (T.Pattern a)
+eval_pats get xs = T.fastCat <$> traverse (eval_pat get) xs
+
 eval_pat :: (T.Parseable a, T.Enumerable a) => (MondoExpr -> Maybe (T.Pattern a)) -> MondoExpr -> Either ParseError (T.Pattern a)
 eval_pat get expr = case expr of
     (MString p) -> case T.parseBP p.value of
@@ -92,6 +96,11 @@ getTime expr = case expr of
     MValue v -> Just . patWithPos $ toRational <$> v
     _ -> Nothing
 
+getInt :: MondoExpr -> Maybe (T.Pattern Int)
+getInt expr = case expr of
+    MValue v -> Just . patWithPos $ round <$> v
+    _ -> Nothing
+
 getString :: MondoExpr -> Maybe (T.Pattern String)
 getString expr = case expr of
     MPlain s -> Just . patWithPos $ s
@@ -116,6 +125,12 @@ resolve_seq com app get expr = case expr of
         soundPat <- eval_pat get sound
         notePat <- eval_pat getFloat note
         pure $ app soundPat |+| T.pF "n" notePat
+    MList (Com "scale" : rest)
+        | com == "n"
+        , (params, MList note) <- (init rest, last rest) -> do
+            notePat <- eval_pats getInt note
+            scalePat <- eval_pats getString params
+            pure $ T.scale scalePat notePat
     -- `s bd (hh # lpf 42)` is desugared to `(s bd (lpf 50 sd))`, and here,
     -- when we process `(lpf 50 sd)`, the following case rewrite it as: (lpf 50 (s sd))
     MList xs@(MPlain _ : _) ->
