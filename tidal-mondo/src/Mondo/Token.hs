@@ -41,7 +41,7 @@ numberP = rd <$> float
     (<++>) a b = (++) <$> a <*> b
     (<:>) a b = (:) <$> a <*> b
     number = P.many1 P.digit
-    dotNumber = do
+    dotNumber = P.try $ do
         v <- P.char '.' <:> number
         pure $ '0' : v
     plus = P.char '+' *> dotNumber
@@ -49,7 +49,7 @@ numberP = rd <$> float
     integer = plus <|> minus <|> dotNumber <|> number
     float = integer <++> decimal <++> expo
       where
-        decimal = P.option "" $ P.char '.' <:> number
+        decimal = P.option "" $ P.try $ P.char '.' <:> number
         expo = P.option "" $ P.oneOf "eE" <:> integer
 
 ops :: String
