@@ -13,7 +13,7 @@ import Text.Parsec qualified as P
 data MondoExpr
     = -- | Function call, or pattern arg
       MList [MondoExpr]
-    | -- | Special function like "square" or "angle"
+    | -- | Special value injected through sugar, not to be confused with user defined values.
       MCommand String
     | -- | A plain value like "bd"
       MPlain (Positioned String)
@@ -21,6 +21,8 @@ data MondoExpr
       MValue (Positioned Float)
     | -- | A double quoted string, to be parsed as tidal mini-notation
       MString (Positioned String)
+    | -- | A lambda
+      MLam [String] MondoExpr
     deriving (Show, Eq)
 
 type Parser a = P.ParsecT [Positioned MondoToken] () Identity a
@@ -35,6 +37,7 @@ showAst e = case e of
         (n, 0) -> show (n :: Int)
         (0, _) -> drop 1 $ show p.value
         _ -> show p.value
+    MLam as l -> "fn (" <> unwords as <> ") " <> showAst l
 
 parse :: [Positioned MondoToken] -> Either P.ParseError MondoExpr
 parse xs = ensureList . desugar <$> P.runParser (MList <$> P.many mondoP) () "input" xs
@@ -45,6 +48,7 @@ ensureList x = MList [x]
 
 desugar :: MondoExpr -> MondoExpr
 desugar (MList (MPlain (Pos "$") : rest)) = desugar $ MList rest
+desugar (MList [MPlain (Pos "#")]) = MLam ["_"] (MCommand "_")
 desugar (MList [x]) = desugar x
 desugar (MList [MCommand "square", x]) = desugar x
 desugar (MList [MCommand "angle", x]) = desugar x
@@ -58,7 +62,7 @@ desugar_nested [MCommand p, x, MList (MCommand q : rest)] | p == q = MCommand p 
 desugar_nested x = x
 
 desugar_list :: [MondoExpr] -> [MondoExpr]
-desugar_list = desugar_pipes . desugar_ops . desugar_or . desugar_stack
+desugar_list = desugar_pipes [] . desugar_ops . desugar_or . desugar_stack
 
 desugar_ops :: [MondoExpr] -> [MondoExpr]
 desugar_ops [] = []
@@ -82,12 +86,21 @@ desugar_or xs =
             [] -> left
             (_ : right) -> [MCommand "or", MList left, MList (desugar_or right)]
 
-desugar_pipes :: [MondoExpr] -> [MondoExpr]
-desugar_pipes xs =
-    let (right, rest) = span (isSplit ["#"]) (reverse xs)
+desugar_pipes :: [MondoExpr] -> [MondoExpr] -> [MondoExpr]
+desugar_pipes acc xs =
+    let (left, rest) = span (isSplit ["#"]) xs
+        leftAcc = case acc of
+            [] -> left
+            _ -> left <> [MList acc]
      in case rest of
-            [] -> reverse right
-            (_ : left) -> reverse right <> [MList $ desugar_pipes $ reverse left]
+            [] -> leftAcc
+            _ : right -> case left of
+                [] -> [MLam ["_"] $ MList $ desugar_pipes leftAcc (add_arg right)]
+                _ -> desugar_pipes leftAcc right
+  where
+    add_arg rest =
+        let (left, right) = span (isSplit ["#"]) rest
+         in left <> [MCommand "_"] <> right
 
 isSplit :: [String] -> MondoExpr -> Bool
 isSplit s e = case e of

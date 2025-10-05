@@ -168,16 +168,6 @@ run = describe "tidal-mondo" do
         it "should desugar a..b" do
             desguar "0..2"
                 `shouldBe` "(.. 2 0)"
-        {-
-        it "should desugar x $ y" $
-            desguar "x $ y"
-                `shouldBe` "(x y)"
-        it "should desugar x $ y z" $
-            desguar "x $ y z"
-                `shouldBe` "(x (y z))"
-        it "should desugar x $ y . z" $
-            desguar "x $ y . z"
-                `shouldBe` "(z (x y))"
         it "should desugar (#)" do
             desguar "(#)"
                 `shouldBe` "(fn (_) _)"
@@ -190,6 +180,7 @@ run = describe "tidal-mondo" do
         it "should desugar lambda with pipe" do
             desguar "(# fast 2 # room 1)"
                 `shouldBe` "(fn (_) (room 1 (fast 2 _)))"
+        {-
         it "should desugar .(." do
             desguar "[jazz hh.(.fast 2)]"
                 `shouldBe` "(square jazz (fast 2 hh))"
