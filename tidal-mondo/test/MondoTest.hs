@@ -161,9 +161,11 @@ run = describe "tidal-mondo" do
         it "should desugar x:y:z" do
             desguar "x:y:z"
                 `shouldBe` "(: z (: y x))"
+        -}
         it "should desugar x:y*x" do
             desguar "bd:0*2"
                 `shouldBe` "(* 2 (: 0 bd))"
+        {-
         it "should desugar a..b" do
             desguar "0..2"
                 `shouldBe` "(.. 2 0)"
