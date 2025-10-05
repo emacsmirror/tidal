@@ -193,13 +193,17 @@ run = describe "tidal-mondo" do
                 `shouldBe` "(square jazz (fast 2 hh))"
         -}
         it "should desugar scale" do
-            desguar "n (0 1 2 # scale minor)"
-                `shouldBe` "(n (scale minor (0 1 2)))"
+            desguar "n ([0 1 2] # scale minor)"
+                `shouldBe` "(n (scale minor (square 0 1 2)))"
+        it "should desugar chained function" do
+            desguar "s [bd hh bd (cp # delay .6)] # bank tr909"
+                `shouldBe` "(bank tr909 (s (square bd hh bd (delay .6 cp))))"
+
         pure ()
 
     describe "mondo tidal" do
         let itEval mondo tidal = it ("should eval " <> mondo) $ compareP (play mondo) tidal
-        itEval "(s bd sd)" do
+        itEval "(s [bd sd])" do
             T.sound "bd sd"
         itEval "(s bd*2)" do
             T.sound "bd*2"
@@ -207,7 +211,7 @@ run = describe "tidal-mondo" do
             T.sound "<bd sd>"
         itEval "(s [bd sd])" do
             T.sound "[bd sd]"
-        itEval "(s bd <sd [hh oh]>)" do
+        itEval "(s [bd <sd [hh oh]>])" do
             T.sound "bd <sd [hh oh]>"
         itEval "(s bd # fast 2)" do
             T.fast 2 $ T.sound "bd"
@@ -217,9 +221,9 @@ run = describe "tidal-mondo" do
             T.fast 2 $ T.sound "bd" # T.cutoff 50
         itEval "s bd # lpf 50" do
             T.sound "bd" # T.cutoff 50
-        itEval "s bd*2 # lpf 50 100" do
+        itEval "s bd*2 # lpf [50 100]" do
             T.sound "bd*2" # T.cutoff "50 100"
-        itEval "s bd (sd # lpf 50)" do
+        itEval "s [bd (sd # lpf 50)]" do
             T.fastCat [T.sound "bd", T.sound "sd" # T.cutoff 50]
         itEval
             ( unlines
@@ -230,9 +234,9 @@ run = describe "tidal-mondo" do
             )
             $ T.sound "<[bd sd] [cp]>"
 
-        itEval "n c2 c3" do
+        itEval "n [c2 c3]" do
             T.n "c2 c3"
-        itEval "s sine # n c2 c3" do
+        itEval "s sine # n [c2 c3]" do
             T.sound "sine" |+| T.n "c2 c3"
         itEval "$ s a $ s b $ s c # lpf 50" do
             T.stack [T.s "a", T.s "b", T.s "c" # T.cutoff 50]
@@ -240,10 +244,11 @@ run = describe "tidal-mondo" do
             T.sound "bd:1"
         itEval "s bd:<1 2>" do
             T.sound "<bd:1 bd:2>"
-        itEval "n (0 1 2 # scale minor)" do
+        itEval "n ([0 1 2] # scale minor)" do
             T.scale "minor" "0 1 2"
-        itEval "n 0 1 2 # lpf 10 # scale minor" do
+        itEval "n [0 1 2] # lpf 10 # scale minor" do
             T.scale "minor" "0 1 2" # T.cutoff 10
+        pure ()
   where
     play :: String -> T.ControlPattern
     play = either (error . show) id . mondoToTidal

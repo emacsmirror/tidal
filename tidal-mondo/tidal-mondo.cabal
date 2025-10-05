@@ -29,6 +29,7 @@ library
   other-modules:       Mondo.Eval
                        Mondo.Parser
                        Mondo.Token
+                       Mondo.Params
 
   Build-depends:
       base >=4.8 && <5

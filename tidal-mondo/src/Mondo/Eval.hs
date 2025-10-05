@@ -1,13 +1,11 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TupleSections #-}
 
-module Mondo.Eval where
-
-import Data.List.NonEmpty qualified as NE
-import GHC.Float (float2Double)
+module Mondo.Eval (eval) where
 
 import Sound.Tidal.Core ((#), (|+|))
 import Sound.Tidal.Core qualified as T
@@ -20,6 +18,7 @@ import Text.Parsec qualified as P
 import Text.Parsec.Error qualified as P
 import Text.Parsec.Pos qualified as P
 
+import Mondo.Params
 import Mondo.Parser
 import Mondo.Token
 
@@ -30,139 +29,94 @@ eval v = mkError ("expected a list, got: " <> show v) (P.newPos "input" 1 1)
 pattern Com :: String -> MondoExpr
 pattern Com s <- MPlain (Pos s)
 
-data TidalPat a
-    = Before (T.Pattern a -> T.ControlPattern -> T.ControlPattern)
-    | After (T.Pattern a -> T.ControlPattern)
-
-data Env = Env {envScale :: Maybe (T.Pattern Int -> T.ControlPattern)}
-
-newEnv :: Env
-newEnv = Env Nothing
-
 eval_list :: Env -> [MondoExpr] -> Either ParseError T.ControlPattern
 eval_list env es = case es of
-    -- s is expected to be at the begining of a pattern
-    (Com "s" : rest) -> T.fastCat <$> traverse (eval_last "s" T.sound getString) rest
-    (Com "n" : rest)
-        | -- note after sound, e.g. 's sine # n c2'
-          Just (params, MList sound@(Com "s" : _)) <- unsnoc rest -> do
-            soundControl <- eval_list env sound
-            noteControl <- eval_notes params
-            pure $ soundControl |+| noteControl
-        | -- standalone n, without sound, e.g. for midi. This is also expected to be at the begining of a pattern
-          otherwise ->
-            eval_notes rest
-    (Com "lpf" : rest) -> eval_control getDouble (After T.cutoff) rest
-    (Com "fast" : rest) -> eval_control getTime (Before T.fast) rest
-    (Com "slow" : rest) -> eval_control getTime (Before T.slow) rest
-    (Com "scale" : rest)
-        | -- scale pipe, e.g. 'n 0 # scale minor'
-          Just (params, MList xs) <- unsnoc rest -> do
-            scalePat <- eval_pats getString params
-            -- add the scale to the env, and apply it later when encountering notes.
-            eval_list (env{envScale = Just (T.scale scalePat)}) xs
-    (MCommand "stack" : rest) -> T.stack <$> traverse eval rest
+    Com "s" : rest -> eval_control sPat rest
+    -- When notes are at the end, just eval the pattern
+    Com "n" : param : [] -> eval_notes param
+    -- When notes are after a sound, eval the sound first then apply the notes with |+|
+    Com "n" : param : MList rest : [] -> do
+        restPat <- eval_list env rest
+        notePat <- eval_notes param
+        pure $ restPat |+| notePat
+    Com "lpf" : rest@(_ : _) -> eval_control lpfPat rest
+    Com "fast" : rest@(_ : _) -> eval_mod fastPat rest
+    Com "slow" : rest@(_ : _) -> eval_mod slowPat rest
+    Com "scale" : param : MList rest : [] -> eval_scale param rest
+    MCommand "stack" : rest -> T.stack <$> traverse eval rest
     x : _ -> mkError ("unexpected command: " <> show es) (exprPos x)
     [] -> mkError "expected command!" (P.newPos "input" 1 1)
   where
-    eval_notes xs = case env.envScale of
+    eval_notes param = case env.envScale of
         -- No scale defined, eval notes from pattern
-        Nothing -> T.fastCat <$> traverse (eval_last "n" T.n getNote) xs
+        Nothing -> eval_pat env nPat param
         -- Scale was piped, eval int from pattern
-        Just scale -> T.fastCat <$> traverse (eval_last "n" scale getInt) xs
-    eval_control get app xs
-        | Just (params, MList rest) <- unsnoc xs = do
-            paramPat <- eval_pats get params
-            controlPat <- eval_list env rest
-            pure $ case app of
-                After aapp -> controlPat # aapp paramPat
-                Before bapp -> bapp paramPat controlPat
-        | otherwise = mkError ("invalid control pattern: " <> show xs) (exprPos $ MList xs)
+        Just scale -> eval_pat env (mkScalePat scale) param
 
--- | Evaluate a list of pattern like 'bd <sd hh>'
-eval_pats :: (T.Parseable a, T.Enumerable a) => (MondoExpr -> Maybe (T.Pattern a)) -> [MondoExpr] -> Either ParseError (T.Pattern a)
-eval_pats get xs = T.fastCat <$> traverse (eval_pat get) xs
+    eval_scale param rest = do
+        scalePat <- eval_pat env (mkMondoPat getString) param
+        case eval_pat env (mkMondoPat getInt) (MList rest) of
+            -- rest are notes, apply the scale and make a control param
+            Right notePat -> pure $ T.scale scalePat notePat
+            -- rest is probably a pipe, add the scale to the env, and apply it later when encountering notes.
+            Left _ -> eval_list (env{envScale = Just (T.scale scalePat)}) rest
 
--- | Evaluate a pattern like '<a b>'
-eval_pat :: (T.Parseable a, T.Enumerable a) => (MondoExpr -> Maybe (T.Pattern a)) -> MondoExpr -> Either ParseError (T.Pattern a)
-eval_pat get expr = case expr of
-    (MString p) -> case T.parseBP p.value of
+    -- Evaluate a control pattern like 's bd'
+    eval_control _ [] = error "The impossible has happened!"
+    eval_control mondoPat (param : rest) = do
+        paramPat <- eval_pat env mondoPat param
+        case rest of
+            [MList xs] -> do
+                restPat <- eval_list env xs
+                pure $ mondoPat.combiner paramPat restPat
+            [] -> pure paramPat
+            -- Here we don't know what's the command, see Note [Chaining Functions Locally]
+            [v@(Com _)] | Just currentParam <- env.currentParam -> do
+                restPat <- eval_list env [MPlain (Positioned currentParam 0 0), v]
+                pure $ mondoPat.combiner paramPat restPat
+            other -> mkError ("unexpected control: " <> show other) $ exprPos (MList other)
+
+    -- Evaluate a modifier pattern like 'fast 2'
+    eval_mod _ [] = error "The impossible has happened!"
+    eval_mod mondoMod (param : rest) = do
+        controlPat <- eval_pat env (mkMondoPat mondoMod.exprToPat) param
+        restPat <- case rest of
+            [MList xs] -> eval_list env xs
+            _ -> mkError ("expected command, got: " <> show rest) (exprPos (MList rest))
+        pure $ mondoMod.appModifier controlPat restPat
+
+-- Evaluate a 'MondoExpr', according to a 'MondoPat', into a tidal pattern.
+eval_pat :: (T.Parseable a, T.Enumerable a) => Env -> MondoPat a b -> MondoExpr -> Either ParseError (T.Pattern b)
+eval_pat env mpat expr = case expr of
+    -- Use tidal mini notation
+    MString p -> case T.parseBP p.value of
         Left err ->
             let errPos = P.errorPos err
                 newPos = P.incSourceLine (P.incSourceColumn errPos p.col) p.row
              in Left $ P.setErrorPos newPos err
-        Right pat -> pure $ T.withContext (addPos p) pat
-    (MList (MCommand "angle" : xs)) ->
-        T.slow (pure $ toRational $ length xs) . T.timeCat . map (1,) <$> traverse (eval_pat get) xs
-    (MList (MCommand "square" : xs)) -> T.fastcat <$> traverse (eval_pat get) xs
-    (MList [MCommand "*", param, val]) -> eval_op getTime T.fast param val
-    _ -> case get expr of
-        Just v -> pure v
-        Nothing -> mkError ("unexpected pat: " <> show expr) (exprPos expr)
+        Right pat -> pure $ T.withContext (addPos p) (mpat.patToControl pat)
+    -- < >
+    MList (MCommand "angle" : xs) ->
+        T.slow (pure $ toRational $ length xs) . T.timeCat . map (1,) <$> traverse (eval_pat env mpat) xs
+    -- [ ]
+    MList (MCommand "square" : xs) -> T.fastcat <$> traverse (eval_pat env mpat) xs
+    -- x*y
+    MList [MCommand "*", param, val] -> eval_op getTime T.fast param val
+    -- x:y. How to resolve the result is defined in the 'MondoPat'
+    MList [MCommand ":", note, sound] | Just colonOp <- mpat.colonOp -> do
+        soundPat <- eval_pat env mpat sound
+        notePat <- eval_pat env (mkMondoPat getFloat) note
+        pure $ colonOp soundPat notePat
+    -- see Note [Chaining Functions Locally]
+    MList xs | Just nested <- mpat.nested -> nested newEnv xs
+    -- this is a value, make it a pattern.
+    _ | Just v <- mpat.exprToPat expr -> pure $ mpat.patToControl v
+    _ -> mkError ("unexpected pat: " <> show expr) (exprPos expr)
   where
-    eval_op getp app param val = do
-        paramPat <- eval_pat getp param
-        valPat <- eval_pat get val
-        pure $ app paramPat valPat
-
--- | Evaluate the last pipe (e.g. the first pattern), like 'n' or 's', which supports 'Chaining Functions Locally'.
-eval_last :: (T.Parseable a, T.Enumerable a) => String -> (T.Pattern a -> T.ControlPattern) -> (MondoExpr -> Maybe (T.Pattern a)) -> MondoExpr -> Either ParseError T.ControlPattern
-eval_last com app get expr = case expr of
-    MList [MCommand ":", note, sound] -> do
-        soundPat <- eval_pat get sound
-        notePat <- eval_pat getFloat note
-        pure $ app soundPat |+| T.pF "n" notePat
-    MList (Com "scale" : rest)
-        | com == "n"
-        , Just (params, MList note) <- unsnoc rest -> do
-            notePat <- eval_pats getInt note
-            scalePat <- eval_pats getString params
-            pure $ T.scale scalePat notePat
-    -- `s bd (hh # lpf 42)` is desugared to `(s bd (lpf 50 sd))`, and here,
-    -- when we process `(lpf 50 sd)`, the following case rewrite it as: (lpf 50 (s sd))
-    MList xs@(MPlain _ : _) ->
-        let (i, l) = (init xs, last xs)
-         in eval_list newEnv $ i <> [MList [MPlain (Positioned com 0 0), l]]
-    _ -> app <$> eval_pat get expr
-
-getDouble :: MondoExpr -> Maybe (T.Pattern Double)
-getDouble expr = case expr of
-    MValue v -> Just . patWithPos $ float2Double <$> v
-    _ -> Nothing
-
-getTime :: MondoExpr -> Maybe (T.Pattern T.Time)
-getTime expr = case expr of
-    MValue v -> Just . patWithPos $ toRational <$> v
-    _ -> Nothing
-
-getInt :: MondoExpr -> Maybe (T.Pattern Int)
-getInt expr = case expr of
-    MValue v -> Just . patWithPos $ round <$> v
-    _ -> Nothing
-
-getString :: MondoExpr -> Maybe (T.Pattern String)
-getString expr = case expr of
-    MPlain s -> Just . patWithPos $ s
-    _ -> Nothing
-
-getFloat :: MondoExpr -> Maybe (T.Pattern Double)
-getFloat expr = case expr of
-    MValue v -> Just . patWithPos $ float2Double <$> v
-    _ -> Nothing
-
-getNote :: MondoExpr -> Maybe (T.Pattern T.Note)
-getNote expr = case expr of
-    MPlain s -> case P.runParser T.pNote 0 "input" s.value of
-        Left err -> error (show err)
-        Right v -> Just (T.withContext (addPos s) $ T.toPat v)
-    MValue v -> Just . patWithPos $ T.Note . float2Double <$> v
-    _ -> Nothing
-
-patWithPos :: Positioned a -> T.Pattern a
-patWithPos v = (T.withContext (addPos v) $ pure v.value)
-
-addPos :: Positioned a -> T.Context -> T.Context
-addPos vp c = c{T.contextPosition = [((vp.col, vp.row), (vp.col + 1, vp.row))]}
+    eval_op getp appOp param val = do
+        paramPat <- eval_pat env (mkMondoPat getp) param
+        valPat <- eval_pat env mpat val
+        pure $ appOp paramPat valPat
 
 mkError :: String -> P.SourcePos -> Either ParseError a
 mkError s = Left . P.newErrorMessage (P.Message s)
@@ -177,7 +131,41 @@ exprPos expr = case expr of
   where
     posPos v = P.newPos "input" v.row v.col
 
-unsnoc :: [a] -> Maybe ([a], a)
-unsnoc xs = do
-    ne <- NE.nonEmpty xs
-    pure (NE.init ne, NE.last ne)
+{-
+Note [Chaining Functions Locally]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Supporting the feature described in https://strudel.cc/learn/mondo-notation/#chaining-functions-locally
+requires a work-around:
+The mondo expression: 's [bd hh bd (cp # delay .6)] # bank tr909'
+desugar into: '(bank tr909 (s (square bd hh bd (delay .6 cp))))'
+
+When evaluating the very last expression: '(delay .6 cp)', we don't know what 'cp' is.
+Thus, the parent control pattern is passed as the 'currentParam' environment, and it is
+applied in case a param argument is plain.
+-}
+
+nestedCom :: String -> Maybe (Env -> [MondoExpr] -> Either P.ParseError T.ControlPattern)
+nestedCom com = Just new_eval
+  where
+    new_eval env = eval_list (env{currentParam = Just com})
+
+-- * Control Patterns
+
+sPat :: MondoParam String
+sPat = MondoPat getString T.sound (Just (\s n -> s |+| T.pF "n" n)) (#) (nestedCom "s")
+
+nPat :: MondoParam T.Note
+nPat = MondoPat getNote T.n Nothing (|+|) (nestedCom "n")
+
+lpfPat :: MondoParam Double
+lpfPat = MondoPat getDouble T.cutoff Nothing (flip (#)) (nestedCom "lpf")
+
+mkScalePat :: (T.Pattern Int -> T.ControlPattern) -> MondoParam Int
+mkScalePat scale = MondoPat getInt scale Nothing (|+|) Nothing
+
+-- * Modifier Patterns
+
+fastPat, slowPat :: MondoMod T.Time
+fastPat = MondoMod getTime T.fast
+slowPat = MondoMod getTime T.slow
