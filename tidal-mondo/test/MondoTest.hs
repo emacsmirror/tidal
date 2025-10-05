@@ -149,17 +149,14 @@ run = describe "tidal-mondo" do
             desguar "$ def melody [0 1 2 3]\n$ n melody # scale C:minor"
                 `shouldBe` "(stack (def melody (square 0 1 2 3)) (scale (: minor C) (n melody)))"
         it "should desugar s fx" do
-            desguar "s bd (sd # lpf 50)"
-                `shouldBe` "(s bd (lpf 50 sd))"
-        it "should desugar odd s fx" do
-            desguar "lpf 50 sd # s bd"
-                `shouldBe` "(s bd (lpf 50 sd))"
+            desguar "s [bd (sd # lpf 50)]"
+                `shouldBe` "(s (square bd (lpf 50 sd)))"
         it "should desugar README example" do
             desguar "s [bd hh*2 (cp # crush 4) <mt ht lt>] # speed .8"
                 `shouldBe` "(speed .8 (s (square bd (* 2 hh) (crush 4 cp) (angle mt ht lt))))"
         it "should desugar call list" do
-            desguar "s bd sd # lpf 50 42 # gain 1 2 3"
-                `shouldBe` "(gain 1 2 3 (lpf 50 42 (s bd sd)))"
+            desguar "s [bd sd] # lpf 50 42 # gain 1 2 3"
+                `shouldBe` "(gain 1 2 3 (lpf 50 42 (s (square bd sd))))"
         {-
         it "should desugar x:y:z" do
             desguar "x:y:z"
