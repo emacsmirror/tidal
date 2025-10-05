@@ -13,6 +13,7 @@ import Sound.Tidal.ParseBP ()
 import Sound.Tidal.Pattern qualified as T
 import Sound.Tidal.Scales qualified as T
 import Sound.Tidal.Show ()
+import Sound.Tidal.UI qualified as T
 import Test.Hspec
 
 import Mondo
@@ -192,6 +193,9 @@ run = describe "tidal-mondo" do
             desguar "s [bd hh bd (cp # delay .6)] # bank tr909"
                 `shouldBe` "(bank tr909 (s (square bd hh bd (delay .6 cp))))"
 
+        it "should desugar sometimes" do
+            desguar "s bd # sometimes (# lpf 42)"
+                `shouldBe` "(sometimes (fn (_) (lpf 42 _)) (s bd))"
         pure ()
 
     describe "mondo tidal" do
@@ -241,6 +245,10 @@ run = describe "tidal-mondo" do
             T.scale "minor" "0 1 2"
         itEval "n [0 1 2] # lpf 10 # scale minor" do
             T.scale "minor" "0 1 2" # T.cutoff 10
+        itEval "s bd # sometimes (# lpf 42)" do
+            T.sometimes (# T.cutoff 42) $ T.sound "bd"
+        itEval "s [bd:<1 2> (sd # lpf 23)] # sometimes (# lpf 42)" do
+            T.sometimes (# T.cutoff 42) $ (T.fastcat [T.sound "<bd:1 bd:2>", T.sound "sd" # T.cutoff 23])
         pure ()
   where
     play :: String -> T.ControlPattern

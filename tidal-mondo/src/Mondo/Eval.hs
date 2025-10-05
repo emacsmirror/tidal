@@ -13,6 +13,7 @@ import Sound.Tidal.Params qualified as T
 import Sound.Tidal.ParseBP qualified as T
 import Sound.Tidal.Pattern qualified as T
 import Sound.Tidal.Scales qualified as T
+import Sound.Tidal.UI qualified as T
 import Text.Parsec (ParseError)
 import Text.Parsec qualified as P
 import Text.Parsec.Error qualified as P
@@ -42,6 +43,10 @@ eval_list env es = case es of
     Com "lpf" : rest@(_ : _) -> eval_control lpfPat rest
     Com "fast" : rest@(_ : _) -> eval_mod fastPat rest
     Com "slow" : rest@(_ : _) -> eval_mod slowPat rest
+    Com "sometimes" : MList [MLam _ (MList xs)] : MList rest : [] -> do
+        restPat <- eval_list env rest
+        ctrlPat <- eval_list env xs
+        pure $ T.sometimes (# ctrlPat) restPat
     Com "scale" : param : MList rest : [] -> eval_scale param rest
     MCommand "stack" : rest -> T.stack <$> traverse eval rest
     x : _ -> mkError ("unexpected command: " <> show es) (exprPos x)
@@ -70,6 +75,8 @@ eval_list env es = case es of
                 restPat <- eval_list env xs
                 pure $ mondoPat.combiner paramPat restPat
             [] -> pure paramPat
+            -- Lambda variable can be ignored?!
+            [MCommand "_"] -> pure paramPat
             -- Here we don't know what's the command, see Note [Chaining Functions Locally]
             [v@(Com _)] | Just currentParam <- env.currentParam -> do
                 restPat <- eval_list env [MPlain (Positioned currentParam 0 0), v]
