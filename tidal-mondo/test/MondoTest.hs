@@ -249,6 +249,11 @@ run = describe "tidal-mondo" do
             T.sometimes (# T.cutoff 42) $ T.sound "bd"
         itEval "s [bd:<1 2> (sd # lpf 23)] # sometimes (# lpf 42)" do
             T.sometimes (# T.cutoff 42) $ (T.fastcat [T.sound "<bd:1 bd:2>", T.sound "sd" # T.cutoff 23])
+        itEval "s [<bd (hh # hpf 23)>:[1 (2 # lpf 42)]]" do
+            T.fastcat
+                [ T.slow 2 $ T.timeCat [(1, T.sound "bd:1"), (1, T.sound "hh:1" # T.hcutoff 23)]
+                , T.slow 2 $ T.timeCat [(1, T.sound "bd:2"), (1, T.sound "hh:2" # T.hcutoff 23)] # T.cutoff 42
+                ]
         pure ()
   where
     play :: String -> T.ControlPattern

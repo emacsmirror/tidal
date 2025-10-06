@@ -19,7 +19,7 @@ import Mondo.Token (Positioned (..))
 data Env = Env
     { envScale :: Maybe (T.Pattern Int -> T.ControlPattern)
     -- ^ A scale set like this "n 0 # scale minor", it will be applied when encountering a note pattern.
-    , currentParam :: Maybe String
+    , currentParam :: Maybe MondoExpr
     -- ^ The current param, see Note [Depend on Chaining Functions Locally]
     }
 
@@ -32,7 +32,7 @@ data MondoPat a b = MondoPat
     -- ^ How to read a MondoExpr, e.g. getString.
     , patToControl :: T.Pattern a -> T.Pattern b
     -- ^ How to make a ControlPattern.
-    , colonOp :: Maybe (T.Pattern b -> T.Pattern Double -> T.Pattern b)
+    , colonOp :: Maybe (T.Pattern b -> T.ControlPattern -> T.Pattern b)
     -- ^ How to handle the ':' operator.
     , combiner :: T.ControlPattern -> T.ControlPattern -> T.ControlPattern
     -- ^ How to combine the resulting pattern with the remaining pipes.

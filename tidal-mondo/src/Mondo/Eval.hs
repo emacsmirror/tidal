@@ -41,6 +41,7 @@ eval_list env es = case es of
         notePat <- eval_notes param
         pure $ restPat |+| notePat
     Com "lpf" : rest@(_ : _) -> eval_control lpfPat rest
+    Com "hpf" : rest@(_ : _) -> eval_control hpfPat rest
     Com "fast" : rest@(_ : _) -> eval_mod fastPat rest
     Com "slow" : rest@(_ : _) -> eval_mod slowPat rest
     Com "sometimes" : MList [MLam _ (MList xs)] : MList rest : [] -> do
@@ -48,6 +49,7 @@ eval_list env es = case es of
         ctrlPat <- eval_list env xs
         pure $ T.sometimes (# ctrlPat) restPat
     Com "scale" : param : MList rest : [] -> eval_scale param rest
+    MCommand "colon-pat" : rest -> eval_control colonPat rest
     MCommand "stack" : rest -> T.stack <$> traverse eval rest
     x : _ -> mkError ("unexpected command: " <> show es) (exprPos x)
     [] -> mkError "expected command!" (P.newPos "input" 1 1)
@@ -78,8 +80,11 @@ eval_list env es = case es of
             -- Lambda variable can be ignored?!
             [MCommand "_"] -> pure paramPat
             -- Here we don't know what's the command, see Note [Chaining Functions Locally]
-            [v@(Com _)] | Just currentParam <- env.currentParam -> do
-                restPat <- eval_list env [MPlain (Positioned currentParam 0 0), v]
+            [v@(MPlain _)] | Just currentParam <- env.currentParam -> do
+                restPat <- eval_list env [currentParam, v]
+                pure $ mondoPat.combiner paramPat restPat
+            [v@(MValue _)] | Just currentParam <- env.currentParam -> do
+                restPat <- eval_list env [currentParam, v]
                 pure $ mondoPat.combiner paramPat restPat
             other -> mkError ("unexpected control: " <> show other) $ exprPos (MList other)
 
@@ -112,10 +117,10 @@ eval_pat env mpat expr = case expr of
     -- x:y. How to resolve the result is defined in the 'MondoPat'
     MList [MCommand ":", note, sound] | Just colonOp <- mpat.colonOp -> do
         soundPat <- eval_pat env mpat sound
-        notePat <- eval_pat env (mkMondoPat getFloat) note
+        notePat <- eval_pat env nestedColonPat note
         pure $ colonOp soundPat notePat
     -- see Note [Chaining Functions Locally]
-    MList xs | Just nested <- mpat.nested -> nested newEnv xs
+    MList xs | Just nested <- mpat.nested -> nested env xs
     -- this is a value, make it a pattern.
     _ | Just v <- mpat.exprToPat expr -> pure $ mpat.patToControl v
     _ -> mkError ("unexpected pat: " <> show expr) (exprPos expr)
@@ -152,24 +157,39 @@ Thus, the parent control pattern is passed as the 'currentParam' environment, an
 applied in case a param argument is plain.
 -}
 
-nestedCom :: String -> Maybe (Env -> [MondoExpr] -> Either P.ParseError T.ControlPattern)
-nestedCom com = Just new_eval
+mkNested :: MondoExpr -> Maybe (Env -> [MondoExpr] -> Either P.ParseError T.ControlPattern)
+mkNested extra = Just new_eval
   where
-    new_eval env = eval_list (env{currentParam = Just com})
+    new_eval env = eval_list (env{currentParam = Just extra})
+
+nestedParam :: String -> Maybe (Env -> [MondoExpr] -> Either P.ParseError T.ControlPattern)
+nestedParam param = mkNested $ MPlain (Positioned param 0 0)
+
+nestedCom :: String -> Maybe (Env -> [MondoExpr] -> Either P.ParseError T.ControlPattern)
+nestedCom com = mkNested $ MCommand com
 
 -- * Control Patterns
 
 sPat :: MondoParam String
-sPat = MondoPat getString T.sound (Just (\s n -> s |+| T.pF "n" n)) (#) (nestedCom "s")
+sPat = MondoPat getString T.sound (Just (|+|)) (#) (nestedParam "s")
 
 nPat :: MondoParam T.Note
-nPat = MondoPat getNote T.n Nothing (|+|) (nestedCom "n")
+nPat = MondoPat getNote T.n Nothing (|+|) (nestedParam "n")
 
 lpfPat :: MondoParam Double
-lpfPat = MondoPat getDouble T.cutoff Nothing (flip (#)) (nestedCom "lpf")
+lpfPat = MondoPat getDouble T.cutoff Nothing (flip (#)) (nestedParam "lpf")
+
+hpfPat :: MondoParam Double
+hpfPat = MondoPat getDouble T.hcutoff Nothing (flip (#)) (nestedParam "hpf")
 
 mkScalePat :: (T.Pattern Int -> T.ControlPattern) -> MondoParam Int
 mkScalePat scale = MondoPat getInt scale Nothing (|+|) Nothing
+
+colonPat :: MondoParam Double
+colonPat = MondoPat getDouble (T.pF "n") Nothing const Nothing
+
+nestedColonPat :: MondoParam Double
+nestedColonPat = MondoPat getFloat (T.pF "n") Nothing (flip (#)) (nestedCom "colon-pat")
 
 -- * Modifier Patterns
 
