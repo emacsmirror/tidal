@@ -9,6 +9,7 @@ module Mondo.Params where
 import GHC.Float (float2Double)
 import Text.Parsec qualified as P
 
+import Sound.Tidal.Core qualified as T
 import Sound.Tidal.ParseBP qualified as T
 import Sound.Tidal.Pattern qualified as T
 
@@ -55,6 +56,7 @@ data MondoMod a = MondoMod
 getDouble :: MondoExpr -> Maybe (T.Pattern Double)
 getDouble expr = case expr of
     MValue v -> Just . patWithPos $ float2Double <$> v
+    MPlain (Positioned "sine" _ _) -> Just $ T.sine
     _ -> Nothing
 
 getTime :: MondoExpr -> Maybe (T.Pattern T.Time)

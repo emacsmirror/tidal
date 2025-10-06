@@ -43,6 +43,7 @@ eval_list env es = case es of
         pure $ restPat |+| notePat
     Com "lpf" : rest@(_ : _) -> eval_control lpfPat rest
     Com "hpf" : rest@(_ : _) -> eval_control hpfPat rest
+    Com "pan" : rest@(_ : _) -> eval_control panPat rest
     Com "fast" : rest@(_ : _) -> eval_mod fastPat rest
     Com "slow" : rest@(_ : _) -> eval_mod slowPat rest
     Com "splice" : bitparam : rest@(_ : _) -> do
@@ -185,6 +186,9 @@ lpfPat = MondoPat getDouble T.cutoff Nothing (flip (#)) (nestedParam "lpf")
 
 hpfPat :: MondoParam Double
 hpfPat = MondoPat getDouble T.hcutoff Nothing (flip (#)) (nestedParam "hpf")
+
+panPat :: MondoParam Double
+panPat = MondoPat getDouble T.pan Nothing (flip (#)) (nestedParam "pan")
 
 mkScalePat :: (T.Pattern Int -> T.ControlPattern) -> MondoParam Int
 mkScalePat scale = MondoPat getInt scale Nothing (|+|) Nothing

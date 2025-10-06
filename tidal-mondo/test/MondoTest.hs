@@ -257,6 +257,8 @@ run = describe "tidal-mondo" do
                 ]
         itEval "s breaks165 # splice 8 <0*8 0*2>" do
             T.splice 8 "<0*8 0*2>" $ T.sound "breaks165"
+        itEval "s arpy*8 # pan sine" do
+            T.sound "arpy*8" # T.pan T.sine
         pure ()
   where
     play :: String -> T.ControlPattern
