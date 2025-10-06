@@ -69,6 +69,11 @@ getInt expr = case expr of
     MValue v -> Just . patWithPos $ round <$> v
     _ -> Nothing
 
+getBool :: MondoExpr -> Maybe (T.Pattern Bool)
+getBool expr = case expr of
+    MValue v -> Just . patWithPos $ const (v.value /= 0) <$> v
+    _ -> Nothing
+
 getString :: MondoExpr -> Maybe (T.Pattern String)
 getString expr = case expr of
     MPlain s -> Just . patWithPos $ s
