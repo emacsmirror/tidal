@@ -261,6 +261,8 @@ run = describe "tidal-mondo" do
             T.sound "arpy*8" # T.pan T.sine
         itEval "s arpy*8 # mask [1 0 1]" do
             T.mask "[1 0 1]" $ T.sound "arpy*8"
+        itEval "s [bd sn] # euclid 3 8" do
+            T.euclid 3 8 $ T.sound "bd sn"
         pure ()
   where
     play :: String -> T.ControlPattern
