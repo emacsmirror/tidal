@@ -197,6 +197,9 @@ run = describe "tidal-mondo" do
         it "should desugar sometimes" do
             desguar "s bd # sometimes (# lpf 42)"
                 `shouldBe` "(sometimes (fn (_) (lpf 42 _)) (s bd))"
+        it "should desugar brackets" do
+            desguar "s [bd [sd hh]]"
+                `shouldBe` "(s (square bd (square sd hh)))"
         pure ()
 
     describe "mondo tidal" do
@@ -209,6 +212,8 @@ run = describe "tidal-mondo" do
             T.sound "<bd sd>"
         itEval "(s [bd sd])" do
             T.sound "[bd sd]"
+        itEval "(s [bd [sd hh]])" do
+            T.sound "bd [sd hh]"
         itEval "(s [bd <sd [hh oh]>])" do
             T.sound "bd <sd [hh oh]>"
         itEval "(s bd # fast 2)" do
@@ -261,8 +266,8 @@ run = describe "tidal-mondo" do
             T.sound "arpy*8" # T.pan T.sine
         itEval "s arpy*8 # mask [1 0 1]" do
             T.mask "[1 0 1]" $ T.sound "arpy*8"
-        itEval "s [bd sn] # euclid 3 8" do
-            T.euclid 3 8 $ T.sound "bd sn"
+        itEval "s [bd*2 sn] # euclid 3 8" do
+            T.euclid 3 8 $ T.sound "bd*2 sn"
         pure ()
   where
     play :: String -> T.ControlPattern

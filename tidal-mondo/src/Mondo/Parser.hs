@@ -58,7 +58,7 @@ desugar (MList xs) = case desugar_nested $ map desugar $ desugar_list xs of
 desugar x = x
 
 desugar_nested :: [MondoExpr] -> [MondoExpr]
-desugar_nested [MCommand p, x, MList (MCommand q : rest)] | p == q = MCommand p : x : rest
+desugar_nested [MCommand p, x, MList (MCommand q : rest)] | p == q, p == "stack" = MCommand p : x : rest
 desugar_nested x = x
 
 desugar_list :: [MondoExpr] -> [MondoExpr]
