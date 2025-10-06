@@ -193,7 +193,7 @@ colonPat :: MondoParam Double
 colonPat = MondoPat getDouble (T.pF "n") Nothing const Nothing
 
 nestedColonPat :: MondoParam Double
-nestedColonPat = MondoPat getFloat (T.pF "n") Nothing (flip (#)) (nestedCom "colon-pat")
+nestedColonPat = MondoPat getDouble (T.pF "n") Nothing (flip (#)) (nestedCom "colon-pat")
 
 -- * Modifier Patterns
 

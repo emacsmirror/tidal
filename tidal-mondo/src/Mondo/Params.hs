@@ -72,11 +72,6 @@ getString expr = case expr of
     MPlain s -> Just . patWithPos $ s
     _ -> Nothing
 
-getFloat :: MondoExpr -> Maybe (T.Pattern Double)
-getFloat expr = case expr of
-    MValue v -> Just . patWithPos $ float2Double <$> v
-    _ -> Nothing
-
 getNote :: MondoExpr -> Maybe (T.Pattern T.Note)
 getNote expr = case expr of
     MPlain s -> case P.runParser T.pNote 0 "input" s.value of
