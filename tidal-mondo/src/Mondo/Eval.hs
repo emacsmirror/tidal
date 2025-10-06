@@ -7,6 +7,7 @@
 
 module Mondo.Eval (eval) where
 
+import Sound.Tidal.Control qualified as T
 import Sound.Tidal.Core ((#), (|+|))
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
@@ -44,6 +45,9 @@ eval_list env es = case es of
     Com "hpf" : rest@(_ : _) -> eval_control hpfPat rest
     Com "fast" : rest@(_ : _) -> eval_mod fastPat rest
     Com "slow" : rest@(_ : _) -> eval_mod slowPat rest
+    Com "splice" : bitparam : rest@(_ : _) -> do
+        bitpat <- eval_pat env (mkMondoPat getInt) bitparam
+        eval_mod (splicePat bitpat) rest
     Com "sometimes" : MList [MLam _ (MList xs)] : MList rest : [] -> do
         restPat <- eval_list env rest
         ctrlPat <- eval_list env xs
@@ -196,3 +200,6 @@ nestedColonPat = MondoPat getFloat (T.pF "n") Nothing (flip (#)) (nestedCom "col
 fastPat, slowPat :: MondoMod T.Time
 fastPat = MondoMod getTime T.fast
 slowPat = MondoMod getTime T.slow
+
+splicePat :: T.Pattern Int -> MondoMod Int
+splicePat bitpat = MondoMod getInt (T.splice bitpat)

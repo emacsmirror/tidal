@@ -6,6 +6,7 @@
 module MondoTest where
 
 import Data.List (sort)
+import Sound.Tidal.Control qualified as T
 import Sound.Tidal.Core ((#), (|+|))
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
@@ -254,6 +255,8 @@ run = describe "tidal-mondo" do
                 [ T.slow 2 $ T.timeCat [(1, T.sound "bd:1"), (1, T.sound "hh:1" # T.hcutoff 23)]
                 , T.slow 2 $ T.timeCat [(1, T.sound "bd:2"), (1, T.sound "hh:2" # T.hcutoff 23)] # T.cutoff 42
                 ]
+        itEval "s breaks165 # splice 8 <0*8 0*2>" do
+            T.splice 8 "<0*8 0*2>" $ T.sound "breaks165"
         pure ()
   where
     play :: String -> T.ControlPattern
