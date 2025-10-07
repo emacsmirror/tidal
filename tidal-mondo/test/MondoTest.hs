@@ -109,8 +109,8 @@ run = describe "tidal-mondo" do
             desguar "[bd cp, hh oh]"
                 `shouldBe` "(stack (square bd cp) (square hh oh))"
         it "should desugar , angle" do
-            desguar "<bd, hh>"
-                `shouldBe` "(stack bd hh)"
+            desguar "<bd, hh, oh>"
+                `shouldBe` "(stack bd hh oh)"
         it "should desugar , angle 2" do
             desguar "<bd, hh oh>"
                 `shouldBe` "(stack bd (angle hh oh))"
