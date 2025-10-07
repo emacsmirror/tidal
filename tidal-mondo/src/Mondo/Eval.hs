@@ -84,7 +84,7 @@ eval_list env es = case es of
         case rest of
             [MList xs] -> do
                 restPat <- eval_list env xs
-                pure $ mondoPat.combiner paramPat restPat
+                pure $ mondoPat.combiner restPat paramPat
             [] -> pure paramPat
             -- Lambda variable can be ignored?!
             [MCommand "_"] -> pure paramPat
@@ -173,12 +173,20 @@ mkP n = MPlain (Positioned n 0 0)
 
 -- * Helpers to map mondo to tidal
 mkMondoParam :: String -> (MondoExpr -> Maybe (T.Pattern a)) -> (T.Pattern a -> T.ControlPattern) -> MondoParam a
-mkMondoParam name get app = MondoPat (Just $ mkP name) get app Nothing (flip (#)) (Just eval_list)
+mkMondoParam name get app =
+    MondoPat
+        { localExpr = Just $ mkP name
+        , exprToPat = get
+        , patToControl = app
+        , colonOp = Just (|+|)
+        , combiner = (#)
+        , nested = Just eval_list
+        }
 
 -- * Control Patterns
 
 sPat :: MondoParam String
-sPat = (mkMondoParam "s" getString T.sound){combiner = (#), colonOp = (Just (|+|))}
+sPat = (mkMondoParam "s" getString T.sound){combiner = (flip (#))}
 
 nPat :: MondoParam T.Note
 nPat = (mkMondoParam "n" getNote T.n){combiner = (|+|)}
@@ -201,7 +209,7 @@ nColonPat :: MondoParam Double
 nColonPat = MondoPat Nothing getDouble (T.pF "n") Nothing const Nothing
 
 colonSoundPat :: MondoParam Double
-colonSoundPat = MondoPat (Just $ MCommand "n-colon-pat") getDouble (T.pF "n") Nothing (flip (#)) (Just eval_list)
+colonSoundPat = (mkMondoParam "" getDouble (T.pF "n")){localExpr = Just $ MCommand "n-colon-pat"}
 
 -- * Modifier Patterns
 
