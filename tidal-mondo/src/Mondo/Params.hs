@@ -29,7 +29,9 @@ newEnv = Env Nothing Nothing
 
 -- | A pattern that can be parsed with 'eval_pat'.
 data MondoPat a b = MondoPat
-    { exprToPat :: MondoExpr -> Maybe (T.Pattern a)
+    { localExpr :: Maybe MondoExpr
+    -- ^ The local expr, use to decide how to handle ':' operation
+    , exprToPat :: MondoExpr -> Maybe (T.Pattern a)
     -- ^ How to read a MondoExpr, e.g. getString.
     , patToControl :: T.Pattern a -> T.Pattern b
     -- ^ How to make a ControlPattern.
@@ -43,7 +45,7 @@ data MondoPat a b = MondoPat
 
 -- | Create the simplest pattern, useful for example to parse the notes from 'bd:<1 2>'
 mkMondoPat :: (MondoExpr -> Maybe (T.Pattern a)) -> MondoPat a a
-mkMondoPat exprToPat = MondoPat exprToPat id Nothing const Nothing
+mkMondoPat exprToPat = MondoPat Nothing exprToPat id Nothing const Nothing
 
 type MondoParam a = MondoPat a T.ValueMap
 
