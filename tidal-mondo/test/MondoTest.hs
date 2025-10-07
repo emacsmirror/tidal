@@ -285,6 +285,7 @@ run = describe "tidal-mondo" do
         itEval "s [bd@2 sd]" $ T.sound "[bd@2 sd]"
         itEval "s [bd@2 ~ sd]" $ T.sound "[bd _ ~ sd]"
         itEval "s bd&3:8" $ T.sound "bd(3,8)"
+        itEval "s bd&<3:8 11:16>" $ T.sound "<bd(3,8) bd(11,16)>"
         pure ()
   where
     play :: String -> T.ControlPattern

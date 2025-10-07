@@ -133,6 +133,12 @@ eval_pat env mpat expr = case expr of
             (l, soundPat) <- eval_pat env mpat sound
             notePat <- snd <$> eval_pat env colonSoundPat note
             pure (l, colonOp soundPat notePat)
+    MList [MCommand ":", z, y]
+        | Just (MCommand "&") <- mpat.localExpr
+        , Just andOp <- mpat.andOp -> do
+            yPat <- snd <$> eval_pat env (mkMondoPat getInt) y
+            zPat <- snd <$> eval_pat env (mkMondoPat getInt) z
+            pure (1, andOp yPat zPat)
     -- x!y
     MList [MCommand "!", MValue (Pos y), x] -> do
         (fromInteger $ round y,) <$> T.timecat <$> replicateM (round y) (eval_pat env mpat x)
@@ -143,11 +149,10 @@ eval_pat env mpat expr = case expr of
         p <- snd <$> eval_pat env mpat x
         pure (fromInteger $ round y, p)
     -- x&y:z
-    MList [MCommand "&", x, MList [MCommand ":", z, y]] -> do
-        yPat <- snd <$> eval_pat env (mkMondoPat getInt) y
-        zPat <- snd <$> eval_pat env (mkMondoPat getInt) z
+    MList [MCommand "&", x, xs] -> do
         (l, xPat) <- eval_pat env mpat x
-        pure (l, T.euclid yPat zPat xPat)
+        let epat = mpat{localExpr = Just (MCommand "&"), andOp = Just (\yPat zPat -> T.euclid yPat zPat xPat)}
+        (l,) <$> T.timecat <$> traverse (eval_pat env epat) [xs]
     -- ~
     Com "~" -> pure (1, T.silence)
     -- see Note [Chaining Functions Locally]
@@ -199,6 +204,7 @@ mkMondoParam name get app =
         , exprToPat = get
         , patToControl = app
         , colonOp = Just (|+|)
+        , andOp = Nothing
         , combiner = (#)
         , nested = Just eval_list
         }
@@ -226,7 +232,7 @@ mkScalePat scale = (mkMondoParam "scale" getInt scale){combiner = (|+|)}
 -- * Grp Patterns
 
 nColonPat :: MondoParam Double
-nColonPat = MondoPat Nothing getDouble (T.pF "n") Nothing const Nothing
+nColonPat = MondoPat Nothing getDouble (T.pF "n") Nothing Nothing const Nothing
 
 colonSoundPat :: MondoParam Double
 colonSoundPat = (mkMondoParam "" getDouble (T.pF "n")){localExpr = Just $ MCommand "n-colon-pat"}
