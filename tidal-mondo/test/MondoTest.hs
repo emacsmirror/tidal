@@ -207,6 +207,9 @@ run = describe "tidal-mondo" do
         it "should desugar @<>" do
             desguar "s [bd@<2 3> sd]"
                 `shouldBe` "(s (square (@ (angle 2 3) bd) sd))"
+        it "should desugar x%y:z" do
+            desguar "bd&3:8"
+                `shouldBe` "(& bd (: 8 3))"
         pure ()
 
     describe "mondo tidal" do
@@ -281,6 +284,7 @@ run = describe "tidal-mondo" do
         itEval "s [bd!2 sd]" $ T.sound "[bd!2 sd]"
         itEval "s [bd@2 sd]" $ T.sound "[bd@2 sd]"
         itEval "s [bd@2 ~ sd]" $ T.sound "[bd _ ~ sd]"
+        itEval "s bd&3:8" $ T.sound "bd(3,8)"
         pure ()
   where
     play :: String -> T.ControlPattern

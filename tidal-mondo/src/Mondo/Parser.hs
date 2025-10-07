@@ -62,7 +62,12 @@ desugar_nested [MCommand "stack", x, MList (MCommand "stack" : rest)] = MCommand
 desugar_nested x = x
 
 desugar_list :: [MondoExpr] -> [MondoExpr]
-desugar_list = desugar_pipes [] . desugar_ops . desugar_or . desugar_stack
+desugar_list = desugar_pipes [] . desugar_ands . desugar_ops . desugar_or . desugar_stack
+
+desugar_ands :: [MondoExpr] -> [MondoExpr]
+desugar_ands [] = []
+desugar_ands (l : MPlain (Pos "&") : r : rest) = desugar_ands $ (MList [MCommand "&", l, r] : rest)
+desugar_ands (x : xs) = x : desugar_ands xs
 
 desugar_ops :: [MondoExpr] -> [MondoExpr]
 desugar_ops [] = []

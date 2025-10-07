@@ -142,6 +142,12 @@ eval_pat env mpat expr = case expr of
     MList [MCommand "@", MValue (Pos y), x] -> do
         p <- snd <$> eval_pat env mpat x
         pure (fromInteger $ round y, p)
+    -- x&y:z
+    MList [MCommand "&", x, MList [MCommand ":", z, y]] -> do
+        yPat <- snd <$> eval_pat env (mkMondoPat getInt) y
+        zPat <- snd <$> eval_pat env (mkMondoPat getInt) z
+        (l, xPat) <- eval_pat env mpat x
+        pure (l, T.euclid yPat zPat xPat)
     -- ~
     Com "~" -> pure (1, T.silence)
     -- see Note [Chaining Functions Locally]

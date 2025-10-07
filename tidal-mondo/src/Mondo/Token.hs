@@ -53,7 +53,7 @@ numberP = rd <$> float
         expo = P.option "" $ P.oneOf "eE" <:> integer
 
 ops :: String
-ops = "*/:!@%?+-"
+ops = "*/:!@%&?+-"
 
 spacesP :: TokenP ()
 spacesP = P.skipMany (spaces <|> oneLineComment)
