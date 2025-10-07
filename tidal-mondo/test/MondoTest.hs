@@ -200,6 +200,13 @@ run = describe "tidal-mondo" do
         it "should desugar brackets" do
             desguar "s [bd [sd hh]]"
                 `shouldBe` "(s (square bd (square sd hh)))"
+
+        it "should desugar !" do
+            desguar "s bd!2"
+                `shouldBe` "(s (! 2 bd))"
+        it "should desugar @<>" do
+            desguar "s [bd@<2 3> sd]"
+                `shouldBe` "(s (square (@ (angle 2 3) bd) sd))"
         pure ()
 
     describe "mondo tidal" do
@@ -268,6 +275,12 @@ run = describe "tidal-mondo" do
             T.mask "[1 0 1]" $ T.sound "arpy*8"
         itEval "s [bd*2 sn] # euclid 3 8" do
             T.euclid 3 8 $ T.sound "bd*2 sn"
+
+        -- timing tests
+        itEval "s [bd ~]" $ T.sound "bd ~"
+        itEval "s [bd!2 sd]" $ T.sound "[bd!2 sd]"
+        itEval "s [bd@2 sd]" $ T.sound "[bd@2 sd]"
+        itEval "s [bd@2 ~ sd]" $ T.sound "[bd _ ~ sd]"
         pure ()
   where
     play :: String -> T.ControlPattern

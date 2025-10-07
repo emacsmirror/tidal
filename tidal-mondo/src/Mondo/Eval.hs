@@ -7,6 +7,7 @@
 
 module Mondo.Eval (eval) where
 
+import Control.Monad (replicateM)
 import Sound.Tidal.Control qualified as T
 import Sound.Tidal.Core ((#), (|+|))
 import Sound.Tidal.Core qualified as T
@@ -48,10 +49,10 @@ eval_list env es = case es of
     Com "slow" : rest@(_ : _) -> eval_mod slowPat rest
     Com "mask" : rest@(_ : _) -> eval_mod maskPat rest
     Com "euclid" : nparam : rest@(_ : _) -> do
-        npat <- eval_pat env (mkMondoPat getInt) nparam
+        npat <- eval_ppat (mkMondoPat getInt) nparam
         eval_mod (euclidPat npat) rest
     Com "splice" : bitparam : rest@(_ : _) -> do
-        bitpat <- eval_pat env (mkMondoPat getInt) bitparam
+        bitpat <- eval_ppat (mkMondoPat getInt) bitparam
         eval_mod (splicePat bitpat) rest
     Com "sometimes" : MList [MLam _ (MList xs)] : MList rest : [] -> do
         restPat <- eval_list env rest
@@ -63,24 +64,26 @@ eval_list env es = case es of
     x : _ -> mkError ("unexpected command: " <> show es) (exprPos x)
     [] -> mkError "expected command!" (P.newPos "input" 1 1)
   where
+    eval_ppat mpat expr = snd <$> eval_pat env mpat expr
+
     eval_notes param = case env.envScale of
         -- No scale defined, eval notes from pattern
-        Nothing -> eval_pat env nPat param
+        Nothing -> eval_ppat nPat param
         -- Scale was piped, eval int from pattern
-        Just scale -> eval_pat env (mkScalePat scale) param
+        Just scale -> eval_ppat (mkScalePat scale) param
 
     eval_scale param rest = do
-        scalePat <- eval_pat env (mkMondoPat getString) param
+        scalePat <- eval_ppat (mkMondoPat getString) param
         case eval_pat env (mkMondoPat getInt) (MList rest) of
             -- rest are notes, apply the scale and make a control param
-            Right notePat -> pure $ T.scale scalePat notePat
+            Right (_, notePat) -> pure $ T.scale scalePat notePat
             -- rest is probably a pipe, add the scale to the env, and apply it later when encountering notes.
             Left _ -> eval_list (env{envScale = Just (T.scale scalePat)}) rest
 
     -- Evaluate a control pattern like 's bd'
     eval_control _ [] = error "The impossible has happened!"
     eval_control mondoPat (param : rest) = do
-        paramPat <- eval_pat env mondoPat param
+        paramPat <- eval_ppat mondoPat param
         case rest of
             [MList xs] -> do
                 restPat <- eval_list env xs
@@ -100,14 +103,14 @@ eval_list env es = case es of
     -- Evaluate a modifier pattern like 'fast 2'
     eval_mod _ [] = error "The impossible has happened!"
     eval_mod mondoMod (param : rest) = do
-        controlPat <- eval_pat env (mkMondoPat mondoMod.exprToPat) param
+        controlPat <- eval_ppat (mkMondoPat mondoMod.exprToPat) param
         restPat <- case rest of
             [MList xs] -> eval_list env xs
             _ -> mkError ("expected command, got: " <> show rest) (exprPos (MList rest))
         pure $ mondoMod.appModifier controlPat restPat
 
 -- Evaluate a 'MondoExpr', according to a 'MondoPat', into a tidal pattern.
-eval_pat :: (T.Parseable a, T.Enumerable a) => Env -> MondoPat a b -> MondoExpr -> Either ParseError (T.Pattern b)
+eval_pat :: (T.Parseable a, T.Enumerable a) => Env -> MondoPat a b -> MondoExpr -> Either ParseError (Rational, T.Pattern b)
 eval_pat env mpat expr = case expr of
     -- Use tidal mini notation
     MString p -> case T.parseBP p.value of
@@ -115,31 +118,42 @@ eval_pat env mpat expr = case expr of
             let errPos = P.errorPos err
                 newPos = P.incSourceLine (P.incSourceColumn errPos p.col) p.row
              in Left $ P.setErrorPos newPos err
-        Right pat -> pure $ T.withContext (addPos p) (mpat.patToControl pat)
+        Right pat -> pure (1, T.withContext (addPos p) (mpat.patToControl pat))
     -- < >
     MList (MCommand "angle" : xs) ->
-        T.slow (pure $ toRational $ length xs) . T.timeCat . map (1,) <$> traverse (eval_pat env mpat) xs
+        (1,) <$> T.slow (pure $ toRational $ length xs) . T.timecat <$> traverse (eval_pat env mpat) xs
     -- [ ]
-    MList (MCommand "square" : xs) -> T.fastcat <$> traverse (eval_pat env mpat) xs
+    MList (MCommand "square" : xs) -> (1,) <$> T.timecat <$> traverse (eval_pat env mpat) xs
     -- x*y
     MList [MCommand "*", param, val] -> eval_op getTime T.fast param val
     -- x:y
     MList [MCommand ":", note, sound]
         | Just (Com "s") <- mpat.localExpr
         , Just colonOp <- mpat.colonOp -> do
-            soundPat <- eval_pat env mpat sound
-            notePat <- eval_pat env colonSoundPat note
-            pure $ colonOp soundPat notePat
+            (l, soundPat) <- eval_pat env mpat sound
+            notePat <- snd <$> eval_pat env colonSoundPat note
+            pure (l, colonOp soundPat notePat)
+    -- x!y
+    MList [MCommand "!", MValue (Pos y), x] -> do
+        (fromInteger $ round y,) <$> T.timecat <$> replicateM (round y) (eval_pat env mpat x)
+    -- x@y
+    -- Note: y can't be a pattern, like `[bd@<2 6> sd]` parses in both tidal and strudel, but it doesn't do what you would expect.
+    -- Good, because that would be hard to support here:) so `y` must be a value
+    MList [MCommand "@", MValue (Pos y), x] -> do
+        p <- snd <$> eval_pat env mpat x
+        pure (fromInteger $ round y, p)
+    -- ~
+    Com "~" -> pure (1, T.silence)
     -- see Note [Chaining Functions Locally]
-    MList xs | Just nested <- mpat.nested -> nested (env{currentParam = mpat.localExpr}) xs
+    MList xs | Just nested <- mpat.nested -> (1,) <$> nested (env{currentParam = mpat.localExpr}) xs
     -- this is a value, make it a pattern.
-    _ | Just v <- mpat.exprToPat expr -> pure $ mpat.patToControl v
+    _ | Just v <- mpat.exprToPat expr -> pure $ (1, mpat.patToControl v)
     _ -> mkError ("unexpected pat: " <> show expr) (exprPos expr)
   where
     eval_op getp appOp param val = do
-        paramPat <- eval_pat env (mkMondoPat getp) param
-        valPat <- eval_pat env mpat val
-        pure $ appOp paramPat valPat
+        paramPat <- snd <$> eval_pat env (mkMondoPat getp) param
+        (l, valPat) <- eval_pat env mpat val
+        pure (l, appOp paramPat valPat)
 
 mkError :: String -> P.SourcePos -> Either ParseError a
 mkError s = Left . P.newErrorMessage (P.Message s)

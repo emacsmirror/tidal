@@ -66,7 +66,7 @@ desugar_list = desugar_pipes [] . desugar_ops . desugar_or . desugar_stack
 
 desugar_ops :: [MondoExpr] -> [MondoExpr]
 desugar_ops [] = []
-desugar_ops (l : MPlain (Pos v) : r : rest) | v `elem` ["*", "/", ":", ".."] = desugar_ops $ (MList [MCommand v, r, l] : rest)
+desugar_ops (l : MPlain (Pos v) : r : rest) | v `elem` ["*", "/", ":", "@", "!", ".."] = desugar_ops $ (MList [MCommand v, r, l] : rest)
 desugar_ops (x : xs) = x : desugar_ops xs
 
 desugar_stack :: [MondoExpr] -> [MondoExpr]
