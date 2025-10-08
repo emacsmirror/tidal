@@ -50,6 +50,7 @@ eval_list env es = case es of
         restPat <- eval_list env rest
         subPat <- eval_list env param
         pure $ restPat |- subPat
+    Com "rev" : MList rest : [] -> T.rev <$> eval_list env rest
     Com "dec" : rest@(_ : _) -> eval_control decPat rest
     Com "lpf" : rest@(_ : _) -> eval_control lpfPat rest
     Com "hpf" : rest@(_ : _) -> eval_control hpfPat rest
@@ -64,6 +65,10 @@ eval_list env es = case es of
     Com "splice" : bitparam : rest@(_ : _) -> do
         bitpat <- eval_ppat (mkMondoPat getInt) bitparam
         eval_mod (splicePat bitpat) rest
+    Com "jux" : Com "rev" : MList rest : [] -> do
+        -- hum, this is not good, need a better way to express that!
+        restPat <- eval_list env rest
+        pure $ T.jux T.rev restPat
     Com "sometimes" : MList [MLam _ (MList xs)] : MList rest : [] -> do
         restPat <- eval_list env rest
         ctrlPat <- eval_list env xs
