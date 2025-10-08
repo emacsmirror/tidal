@@ -132,6 +132,8 @@ eval_pat env mpat expr = case expr of
         fmap (T.degradeBy yPat) <$> eval_pat env mpat x
     -- x*y
     MList [MCommand "*", param, val] -> eval_op getTime T.fast param val
+    -- x/y
+    MList [MCommand "/", param, val] -> eval_op getTime T.slow param val
     -- x:y
     MList [MCommand ":", note, sound]
         | Just (Com "s") <- mpat.localExpr
