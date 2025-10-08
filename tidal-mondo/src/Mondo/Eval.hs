@@ -9,7 +9,7 @@ module Mondo.Eval (eval) where
 
 import Control.Monad (replicateM)
 import Sound.Tidal.Control qualified as T
-import Sound.Tidal.Core ((#), (|+|))
+import Sound.Tidal.Core ((#), (|+), (|+|), (|-))
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
 import Sound.Tidal.ParseBP qualified as T
@@ -42,6 +42,14 @@ eval_list env es = case es of
         restPat <- eval_list env rest
         notePat <- eval_notes param
         pure $ restPat |+| notePat
+    Com "add" : MList param : MList rest : [] -> do
+        restPat <- eval_list env rest
+        addPat <- eval_list env param
+        pure $ restPat |+ addPat
+    Com "sub" : MList param : MList rest : [] -> do
+        restPat <- eval_list env rest
+        subPat <- eval_list env param
+        pure $ restPat |- subPat
     Com "lpf" : rest@(_ : _) -> eval_control lpfPat rest
     Com "hpf" : rest@(_ : _) -> eval_control hpfPat rest
     Com "pan" : rest@(_ : _) -> eval_control panPat rest

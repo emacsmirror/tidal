@@ -7,7 +7,7 @@ module MondoTest where
 
 import Data.List (sort)
 import Sound.Tidal.Control qualified as T
-import Sound.Tidal.Core ((#), (|+|))
+import Sound.Tidal.Core ((#), (|+), (|+|), (|-))
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
 import Sound.Tidal.ParseBP ()
@@ -219,6 +219,10 @@ run = describe "tidal-mondo" do
         it "should desugar slow sine" do
             desguar "s hh*8 # pan (sine # slow 3)"
                 `shouldBe` "(pan (slow 3 sine) (s (* 8 hh)))"
+        it "should desugar add" do
+            desguar "n 1 # add (n 2)"
+                `shouldBe` "(add (n 2) (n 1))"
+
         pure ()
 
     describe "mondo tidal" do
@@ -287,6 +291,10 @@ run = describe "tidal-mondo" do
             T.mask "[1 0 1]" $ T.sound "arpy*8"
         itEval "s [bd*2 sn] # euclid 3 8" do
             T.euclid 3 8 $ T.sound "bd*2 sn"
+
+        -- add/sub tests
+        itEval "n [1 2] # add (n 3) # pan 1" $ T.n "[1 2]" |+ T.n "3" # T.pan 1
+        itEval "n 0..12 # sub (n <0 5>) # lpf 1" $ T.n "0..12" |- T.n "<0 5>" # T.cutoff 1
 
         -- timing tests
         itEval "s [bd ~]" $ T.sound "bd ~"
