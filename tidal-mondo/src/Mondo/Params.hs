@@ -22,10 +22,11 @@ data Env = Env
     -- ^ A scale set like this "n 0 # scale minor", it will be applied when encountering a note pattern.
     , currentParam :: Maybe MondoExpr
     -- ^ The current param, see Note [Depend on Chaining Functions Locally]
+    , defs :: [(String, MondoExpr)]
     }
 
 newEnv :: Env
-newEnv = Env Nothing Nothing
+newEnv = Env Nothing Nothing []
 
 -- | A pattern that can be parsed with 'eval_pat'.
 data MondoPat a b = MondoPat

@@ -25,12 +25,24 @@ import Mondo.Params
 import Mondo.Parser
 import Mondo.Token
 
-eval :: MondoExpr -> Either ParseError T.ControlPattern
-eval (MList xs) = eval_list newEnv xs
-eval v = mkError ("expected a list, got: " <> show v) (P.newPos "input" 1 1)
-
 pattern Com :: String -> MondoExpr
 pattern Com s <- MPlain (Pos s)
+
+eval :: MondoExpr -> Either ParseError T.ControlPattern
+eval es = case es of
+    MList (MCommand "stack" : rest) ->
+        let (defs, pats) = go [] [] rest
+         in eval_list (Env Nothing Nothing defs) $ MCommand "stack" : pats
+    _ -> eval_top newEnv es
+  where
+    go defs acc [] = (defs, reverse acc)
+    go defs acc (x : xs) = case x of
+        MList [Com "def", Com k, v] -> go ((k, v) : defs) acc xs
+        _ -> go defs (x : acc) xs
+
+eval_top :: Env -> MondoExpr -> Either ParseError T.ControlPattern
+eval_top env (MList xs) = eval_list env xs
+eval_top _ v = mkError ("expected a list, got: " <> show v) (P.newPos "input" 1 1)
 
 eval_list :: Env -> [MondoExpr] -> Either ParseError T.ControlPattern
 eval_list env es = case es of
@@ -75,7 +87,7 @@ eval_list env es = case es of
         pure $ T.sometimes f restPat
     Com "scale" : param : MList rest : [] -> eval_scale param rest
     MCommand "n-colon-pat" : rest -> eval_control nColonPat rest
-    MCommand "stack" : rest -> T.stack <$> traverse eval rest
+    MCommand "stack" : rest -> T.stack <$> traverse (eval_top env) rest
     x : _ -> mkError ("unexpected command: " <> show es) (exprPos x)
     [] -> mkError "expected command!" (P.newPos "input" 1 1)
   where
@@ -216,6 +228,8 @@ eval_pat env mpat expr = case expr of
     Com "~" -> pure (1, T.silence)
     -- see Note [Chaining Functions Locally]
     MList xs | Just nested <- mpat.nested -> (1,) <$> nested (env{currentParam = mpat.localExpr}) xs
+    -- a def
+    Com n | Just v <- lookup n env.defs -> eval_pat env mpat v
     -- this is a value, make it a pattern.
     _ | Just v <- mpat.exprToPat expr -> pure $ (1, mpat.patToControl v)
     _ -> mkError ("unexpected pat: " <> show expr) (exprPos expr)
