@@ -65,14 +65,14 @@ eval_list env es = case es of
     Com "splice" : bitparam : rest@(_ : _) -> do
         bitpat <- eval_ppat (mkMondoPat getInt) bitparam
         eval_mod (splicePat bitpat) rest
-    Com "jux" : Com "rev" : MList rest : [] -> do
-        -- hum, this is not good, need a better way to express that!
+    Com "jux" : param : MList rest : [] -> do
+        f <- eval_fun env param
         restPat <- eval_list env rest
-        pure $ T.jux T.rev restPat
-    Com "sometimes" : MList [MLam _ (MList xs)] : MList rest : [] -> do
+        pure $ T.jux f restPat
+    Com "sometimes" : param : MList rest : [] -> do
+        f <- eval_fun env param
         restPat <- eval_list env rest
-        ctrlPat <- eval_list env xs
-        pure $ T.sometimes (# ctrlPat) restPat
+        pure $ T.sometimes f restPat
     Com "scale" : param : MList rest : [] -> eval_scale param rest
     MCommand "n-colon-pat" : rest -> eval_control nColonPat rest
     MCommand "stack" : rest -> T.stack <$> traverse eval rest
@@ -123,6 +123,17 @@ eval_list env es = case es of
             [MList xs] -> eval_list env xs
             _ -> mkError ("expected command, got: " <> show rest) (exprPos (MList rest))
         pure $ mondoMod.appModifier controlPat restPat
+
+eval_fun :: Env -> MondoExpr -> Either ParseError (T.ControlPattern -> T.ControlPattern)
+eval_fun env expr = case expr of
+    MList [MLam _ (MList xs)] -> do
+        ctrlPat <- eval_list env xs
+        pure (# ctrlPat)
+    MList [Com "jux", x] -> do
+        f <- eval_fun env x
+        pure $ T.jux f
+    Com "rev" -> pure T.rev
+    _ -> mkError ("expected fun, got: " <> show expr) (exprPos expr)
 
 -- Evaluate a 'MondoExpr', according to a 'MondoPat', into a tidal pattern.
 eval_pat :: (T.Parseable a, T.Enumerable a) => Env -> MondoPat a b -> MondoExpr -> Either ParseError (Rational, T.Pattern b)

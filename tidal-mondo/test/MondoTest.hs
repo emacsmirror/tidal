@@ -314,6 +314,9 @@ run = describe "tidal-mondo" do
         itEval "s sine*4 # dec(sine # slow 4 # range 0 2)" $ T.sound "sine*4" # T.decay (T.slow 4 $ T.range 0 2 T.sine)
         itEval "s [bd hh sn cp] # iter 4" $ T.iter 4 $ T.sound "bd hh sn cp"
         itEval "n <0 2 4 [3 1] -1>*4 # jux rev" $ T.jux T.rev $ T.n "<0 2 4 [3 1] -1>*4"
+        itEval "s bd*2 # jux (# dec 1 # rev)" $ T.jux (T.rev . (# T.decay 1)) $ T.sound "bd * 2"
+        itEval "n 0..7 # sometimes (jux rev)" $ T.sometimes (T.jux T.rev) $ T.n "0..7"
+        itEval "n 0..7 # sometimes (# lpf 1 # dec 1)" $ T.sometimes ((# T.decay 1) . (# T.cutoff 1)) $ T.n "0..7"
         pure ()
   where
     play :: String -> T.ControlPattern
