@@ -132,8 +132,10 @@ eval_pat env mpat expr = case expr of
         fmap (T.degradeBy yPat) <$> eval_pat env mpat x
     -- x*y
     MList [MCommand "*", param, val] -> eval_op getTime T.fast param val
+    MList [Com "fast", param, val] -> eval_op getTime T.fast param val
     -- x/y
     MList [MCommand "/", param, val] -> eval_op getTime T.slow param val
+    MList [Com "slow", param, val] -> eval_op getTime T.slow param val
     -- x..y
     MList [MCommand "..", y, x] -> do
         let rpat = mkMondoPat mpat.exprToPat

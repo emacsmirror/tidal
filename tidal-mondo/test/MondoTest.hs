@@ -216,6 +216,9 @@ run = describe "tidal-mondo" do
         it "should desugar x?1 y" do
             desguar "[bd?1 sd]"
                 `shouldBe` "(square (? bd 1) sd)"
+        it "should desugar slow sine" do
+            desguar "s hh*8 # pan (sine # slow 3)"
+                `shouldBe` "(pan (slow 3 sine) (s (* 8 hh)))"
         pure ()
 
     describe "mondo tidal" do
@@ -297,6 +300,9 @@ run = describe "tidal-mondo" do
         itEval "s bd&<3:8 11:16>" $ T.sound "<bd(3,8) bd(11,16)>"
         itEval "s bd?" $ T.sound "bd?"
         itEval "s [bd? sd?2]" $ T.fastcat [T.sound "bd?", T.degradeBy 2 (T.sound "sd")]
+
+        -- full tests
+        itEval "s hh*8 # pan (sine # slow <3 1>)" $ T.sound "hh*8" # T.pan (T.slow "<3 1>" T.sine)
         pure ()
   where
     play :: String -> T.ControlPattern
