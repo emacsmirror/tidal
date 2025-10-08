@@ -222,6 +222,9 @@ run = describe "tidal-mondo" do
         it "should desugar add" do
             desguar "n 1 # add (n 2)"
                 `shouldBe` "(add (n 2) (n 1))"
+        it "should desugar sometime jux" do
+            desguar "sometimes (# lpf 1 # jux rev)"
+                `shouldBe` "(sometimes (fn (_) (jux rev (lpf 1 _))))"
 
         pure ()
 
@@ -316,6 +319,7 @@ run = describe "tidal-mondo" do
         itEval "n <0 2 4 [3 1] -1>*4 # jux rev" $ T.jux T.rev $ T.n "<0 2 4 [3 1] -1>*4"
         itEval "s bd*2 # jux (# dec 1 # rev)" $ T.jux (T.rev . (# T.decay 1)) $ T.sound "bd * 2"
         itEval "n 0..7 # sometimes (jux rev)" $ T.sometimes (T.jux T.rev) $ T.n "0..7"
+        itEval "n 0..7 # sometimes (# lpf 1 # jux rev)" $ T.sometimes (T.jux T.rev . (# T.cutoff 1)) $ T.n "0..7"
         itEval "n 0..7 # sometimes (# lpf 1 # dec 1)" $ T.sometimes ((# T.decay 1) . (# T.cutoff 1)) $ T.n "0..7"
         itEval "s sitar # lpf (sine/3 # range 120 400)" $ T.sound "sitar" # T.cutoff (T.range 120 400 $ T.slow 3 T.sine)
         pure ()

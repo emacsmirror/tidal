@@ -126,14 +126,23 @@ eval_list env es = case es of
 
 eval_fun :: Env -> MondoExpr -> Either ParseError (T.ControlPattern -> T.ControlPattern)
 eval_fun env expr = case expr of
-    MList [MLam _ (MList xs)] -> do
-        ctrlPat <- eval_list env xs
-        pure (# ctrlPat)
-    MList [Com "jux", x] -> do
+    MList [MLam _ body] -> eval_fun env body
+    MList (Com "jux" : x : rest) -> do
         f <- eval_fun env x
-        pure $ T.jux f
+        eval_compo (T.jux f) rest
+    MCommand "_" -> pure id
     Com "rev" -> pure T.rev
+    MList xs -> case eval_list env xs of
+        Left _ -> mkError ("arg is not fun: " <> show expr) (exprPos expr)
+        Right p -> pure (# p)
     _ -> mkError ("expected fun, got: " <> show expr) (exprPos expr)
+  where
+    eval_compo f rest = case rest of
+        [] -> pure f
+        [x] -> do
+            g <- eval_fun env x
+            pure $ f . g
+        _ -> mkError ("unexpected fun: " <> show rest) (exprPos (MList rest))
 
 -- Evaluate a 'MondoExpr', according to a 'MondoPat', into a tidal pattern.
 eval_pat :: (T.Parseable a, T.Enumerable a) => Env -> MondoPat a b -> MondoExpr -> Either ParseError (Rational, T.Pattern b)
