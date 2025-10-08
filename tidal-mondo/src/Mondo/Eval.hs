@@ -56,6 +56,7 @@ eval_list env es = case es of
     Com "pan" : rest@(_ : _) -> eval_control panPat rest
     Com "fast" : rest@(_ : _) -> eval_mod fastPat rest
     Com "slow" : rest@(_ : _) -> eval_mod slowPat rest
+    Com "iter" : rest@(_ : _) -> eval_mod iterPat rest
     Com "mask" : rest@(_ : _) -> eval_mod maskPat rest
     Com "euclid" : nparam : rest@(_ : _) -> do
         npat <- eval_ppat (mkMondoPat getInt) nparam
@@ -288,6 +289,9 @@ splicePat bitpat = MondoMod getInt (T.splice bitpat)
 
 euclidPat :: T.Pattern Int -> MondoMod Int
 euclidPat n = MondoMod getInt (T.euclid n)
+
+iterPat :: MondoMod Int
+iterPat = MondoMod getInt T.iter
 
 maskPat :: MondoMod Bool
 maskPat = MondoMod getBool T.mask

@@ -312,6 +312,7 @@ run = describe "tidal-mondo" do
         -- full tests
         itEval "s hh*8 # pan (sine # slow <3 1>)" $ T.sound "hh*8" # T.pan (T.slow "<3 1>" T.sine)
         itEval "s sine*4 # dec(sine # slow 4 # range 0 2)" $ T.sound "sine*4" # T.decay (T.slow 4 $ T.range 0 2 T.sine)
+        itEval "s [bd hh sn cp] # iter 4" $ T.iter 4 $ T.sound "bd hh sn cp"
         pure ()
   where
     play :: String -> T.ControlPattern
