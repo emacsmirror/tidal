@@ -124,6 +124,12 @@ eval_pat env mpat expr = case expr of
         (1,) <$> T.slow (pure $ toRational $ length xs) . T.timecat <$> traverse (eval_pat env mpat) xs
     -- [ ]
     MList (MCommand "square" : xs) -> (1,) <$> T.timecat <$> traverse (eval_pat env mpat) xs
+    -- x?
+    MList [MCommand "?", x] -> fmap (T.degradeBy 0.5) <$> eval_pat env mpat x
+    -- x?y
+    MList [MCommand "?", x, y] -> do
+        yPat <- snd <$> eval_pat env (mkMondoPat getDouble) y
+        fmap (T.degradeBy yPat) <$> eval_pat env mpat x
     -- x*y
     MList [MCommand "*", param, val] -> eval_op getTime T.fast param val
     -- x:y

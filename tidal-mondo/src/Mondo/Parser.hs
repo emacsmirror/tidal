@@ -71,6 +71,9 @@ desugar_ands (x : xs) = x : desugar_ands xs
 
 desugar_ops :: [MondoExpr] -> [MondoExpr]
 desugar_ops [] = []
+desugar_ops (l : MPlain (Pos "?") : rest)
+    | (v@MValue{} : xs) <- rest = MList [MCommand "?", l, v] : desugar_ops xs
+    | otherwise = MList [MCommand "?", l] : desugar_ops rest
 desugar_ops (l : MPlain (Pos v) : r : rest) | v `elem` ["*", "/", ":", "@", "!", ".."] = desugar_ops $ (MList [MCommand v, r, l] : rest)
 desugar_ops (x : xs) = x : desugar_ops xs
 
