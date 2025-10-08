@@ -134,6 +134,12 @@ eval_pat env mpat expr = case expr of
     MList [MCommand "*", param, val] -> eval_op getTime T.fast param val
     -- x/y
     MList [MCommand "/", param, val] -> eval_op getTime T.slow param val
+    -- x..y
+    MList [MCommand "..", y, x] -> do
+        let rpat = mkMondoPat mpat.exprToPat
+        xPat <- snd <$> eval_pat env rpat x
+        yPat <- snd <$> eval_pat env rpat y
+        pure (1, mpat.patToControl $ T.unwrap $ T.fromTo <$> xPat <*> yPat)
     -- x:y
     MList [MCommand ":", note, sound]
         | Just (Com "s") <- mpat.localExpr
