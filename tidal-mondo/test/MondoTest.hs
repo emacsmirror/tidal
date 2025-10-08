@@ -317,6 +317,7 @@ run = describe "tidal-mondo" do
         itEval "s bd*2 # jux (# dec 1 # rev)" $ T.jux (T.rev . (# T.decay 1)) $ T.sound "bd * 2"
         itEval "n 0..7 # sometimes (jux rev)" $ T.sometimes (T.jux T.rev) $ T.n "0..7"
         itEval "n 0..7 # sometimes (# lpf 1 # dec 1)" $ T.sometimes ((# T.decay 1) . (# T.cutoff 1)) $ T.n "0..7"
+        itEval "s sitar # lpf (sine/3 # range 120 400)" $ T.sound "sitar" # T.cutoff (T.range 120 400 $ T.slow 3 T.sine)
         pure ()
   where
     play :: String -> T.ControlPattern
