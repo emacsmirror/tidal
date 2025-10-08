@@ -50,6 +50,7 @@ eval_list env es = case es of
         restPat <- eval_list env rest
         subPat <- eval_list env param
         pure $ restPat |- subPat
+    Com "dec" : rest@(_ : _) -> eval_control decPat rest
     Com "lpf" : rest@(_ : _) -> eval_control lpfPat rest
     Com "hpf" : rest@(_ : _) -> eval_control hpfPat rest
     Com "pan" : rest@(_ : _) -> eval_control panPat rest
@@ -144,6 +145,14 @@ eval_pat env mpat expr = case expr of
     -- x/y
     MList [MCommand "/", param, val] -> eval_op getTime T.slow param val
     MList [Com "slow", param, val] -> eval_op getTime T.slow param val
+    -- range x y p
+    MList [Com "range", x, y, p]
+        | Just rangeOp <- mpat.rangeOp -> do
+            let rpat = mkMondoPat getDouble
+            xPat <- snd <$> eval_pat env rpat x
+            yPat <- snd <$> eval_pat env rpat y
+            (l, pPat) <- eval_pat env rpat p
+            pure (l, mpat.patToControl $ rangeOp xPat yPat pPat)
     -- x..y
     MList [MCommand "..", y, x] -> do
         let rpat = mkMondoPat mpat.exprToPat
@@ -229,9 +238,13 @@ mkMondoParam name get app =
         , patToControl = app
         , colonOp = Just (|+|)
         , andOp = Nothing
+        , rangeOp = Nothing
         , combiner = (#)
         , nested = Just eval_list
         }
+
+mkMondoDParam :: String -> (MondoExpr -> Maybe (T.Pattern Double)) -> (T.Pattern Double -> T.ControlPattern) -> MondoParam Double
+mkMondoDParam name get app = (mkMondoParam name get app){rangeOp = Just T.range}
 
 -- * Control Patterns
 
@@ -242,13 +255,16 @@ nPat :: MondoParam T.Note
 nPat = (mkMondoParam "n" getNote T.n){combiner = (|+|)}
 
 lpfPat :: MondoParam Double
-lpfPat = mkMondoParam "lpf" getDouble T.cutoff
+lpfPat = mkMondoDParam "lpf" getDouble T.cutoff
 
 hpfPat :: MondoParam Double
-hpfPat = mkMondoParam "hpf" getDouble T.hcutoff
+hpfPat = mkMondoDParam "hpf" getDouble T.hcutoff
 
 panPat :: MondoParam Double
-panPat = mkMondoParam "pan" getDouble T.pan
+panPat = mkMondoDParam "pan" getDouble T.pan
+
+decPat :: MondoParam Double
+decPat = mkMondoDParam "dec" getDouble T.decay
 
 mkScalePat :: (T.Pattern Int -> T.ControlPattern) -> MondoParam Int
 mkScalePat scale = (mkMondoParam "scale" getInt scale){combiner = (|+|)}
@@ -256,7 +272,7 @@ mkScalePat scale = (mkMondoParam "scale" getInt scale){combiner = (|+|)}
 -- * Grp Patterns
 
 nColonPat :: MondoParam Double
-nColonPat = MondoPat Nothing getDouble (T.pF "n") Nothing Nothing const Nothing
+nColonPat = MondoPat Nothing getDouble (T.pF "n") Nothing Nothing Nothing const Nothing
 
 colonSoundPat :: MondoParam Double
 colonSoundPat = (mkMondoParam "" getDouble (T.pF "n")){localExpr = Just $ MCommand "n-colon-pat"}
