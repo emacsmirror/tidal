@@ -43,8 +43,8 @@ run = describe "tidal-mondo" do
             parseTest "(a (b c))"
                 `shouldBe` MList [mp "a", MList [mp "b", mp "c"]]
         it "should parse numbers" do
-            parseTest "(1 .2 1.2 10 22.3)"
-                `shouldBe` MList [mv 1, mv 0.2, mv 1.2, mv 10, mv 22.3]
+            parseTest "(-42 1 .2 1.2 10 22.3)"
+                `shouldBe` MList [mv (-42), mv 1, mv 0.2, mv 1.2, mv 10, mv 22.3]
         it "should parse quotes" do
             parseTest "('it is plain' \"a double\")"
                 `shouldBe` MList [mp "it is plain", MString (Positioned "a double" 0 0)]
@@ -313,7 +313,7 @@ run = describe "tidal-mondo" do
         itEval "s hh*8 # pan (sine # slow <3 1>)" $ T.sound "hh*8" # T.pan (T.slow "<3 1>" T.sine)
         itEval "s sine*4 # dec(sine # slow 4 # range 0 2)" $ T.sound "sine*4" # T.decay (T.slow 4 $ T.range 0 2 T.sine)
         itEval "s [bd hh sn cp] # iter 4" $ T.iter 4 $ T.sound "bd hh sn cp"
-        itEval "n <0 2 4 [3 1] 1>*4 # jux rev" $ T.jux T.rev $ T.n "<0 2 4 [3 1] 1>*4"
+        itEval "n <0 2 4 [3 1] -1>*4 # jux rev" $ T.jux T.rev $ T.n "<0 2 4 [3 1] -1>*4"
         pure ()
   where
     play :: String -> T.ControlPattern

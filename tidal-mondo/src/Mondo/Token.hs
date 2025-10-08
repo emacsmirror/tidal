@@ -44,8 +44,8 @@ numberP = rd <$> float
     dotNumber = P.try $ do
         v <- P.char '.' <:> number
         pure $ '0' : v
-    plus = P.char '+' *> dotNumber
-    minus = P.char '-' <:> dotNumber
+    plus = P.char '+' *> number
+    minus = P.char '-' <:> number
     integer = plus <|> minus <|> dotNumber <|> number
     float = integer <++> decimal <++> expo
       where
