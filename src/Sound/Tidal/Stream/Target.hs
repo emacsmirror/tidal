@@ -224,3 +224,6 @@ bDefault x = Just $ VB x
 
 xDefault :: [Word8] -> Maybe Value
 xDefault x = Just $ VX x
+
+required :: Maybe Value
+required = Nothing
