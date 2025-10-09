@@ -267,7 +267,7 @@ applied when a param argument is plain.
 -}
 
 mkP :: String -> MondoExpr
-mkP n = MPlain (Positioned n 0 0)
+mkP n = MPlain (Positioned n 0 0 0)
 
 -- * Helpers to map mondo to tidal
 mkMondoParam :: String -> (MondoExpr -> Maybe (T.Pattern a)) -> (T.Pattern a -> T.ControlPattern) -> MondoParam a

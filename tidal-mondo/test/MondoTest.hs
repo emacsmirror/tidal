@@ -47,7 +47,7 @@ run = describe "tidal-mondo" do
                 `shouldBe` MList [mv (-42), mv 1, mv 0.2, mv 1.2, mv 10, mv 22.3]
         it "should parse quotes" do
             parseTest "('it is plain' \"a double\")"
-                `shouldBe` MList [mp "it is plain", MString (Positioned "a double" 0 0)]
+                `shouldBe` MList [mp "it is plain", MString (Positioned "a double" 0 0 0)]
         it "should parse comments" do
             parseTest "a // hello"
                 `shouldBe` MList [mp "a"]
@@ -341,7 +341,7 @@ run = describe "tidal-mondo" do
     mv = MValue . mkp
     mp = MPlain . mkp
     ms = MString . mkp
-    mkp v = Positioned v 0 0
+    mkp v = Positioned v 0 0 0
 
 -- from tidal TestUtils
 stripContext :: T.Pattern a -> T.Pattern a

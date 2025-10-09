@@ -21,13 +21,14 @@ data MondoToken
 type TokenP a = P.ParsecT String () Identity a
 
 pattern Pos :: a -> Positioned a
-pattern Pos v <- Positioned v _ _
+pattern Pos v <- Positioned v _ _ _
 
 -- | A positioned value, for event contextLocation.
 data Positioned a = Positioned
     { value :: a
     , col :: Int
     , row :: Int
+    , len :: Int
     }
     deriving (Functor, Show, Eq)
 
@@ -80,8 +81,10 @@ positionedTokenP :: TokenP (Positioned MondoToken)
 positionedTokenP = do
     pos <- P.getPosition
     token <- tokenP
+    endPos <- P.getPosition
     spacesP
-    pure $ Positioned token (P.sourceColumn pos) (P.sourceLine pos)
+    let col' = P.sourceColumn pos
+    pure $ Positioned token col' (P.sourceLine pos) (P.sourceColumn endPos - col')
 
 tokenize :: String -> Either P.ParseError [Positioned MondoToken]
 tokenize = P.runParser (spacesP *> P.many positionedTokenP <* P.eof) () "input"

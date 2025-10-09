@@ -62,7 +62,7 @@ data MondoMod a = MondoMod
 getDouble :: MondoExpr -> Maybe (T.Pattern Double)
 getDouble expr = case expr of
     MValue v -> Just . patWithPos $ float2Double <$> v
-    MPlain (Positioned "sine" _ _) -> Just $ T.sine
+    MPlain (Positioned "sine" _ _ _) -> Just $ T.sine
     _ -> Nothing
 
 getTime :: MondoExpr -> Maybe (T.Pattern T.Time)
@@ -97,4 +97,4 @@ patWithPos :: Positioned a -> T.Pattern a
 patWithPos v = T.withContext (addPos v) $ pure v.value
 
 addPos :: Positioned a -> T.Context -> T.Context
-addPos vp c = c{T.contextPosition = [((vp.col, vp.row), (vp.col + 1, vp.row))]}
+addPos vp c = c{T.contextPosition = [((vp.col, vp.row), (vp.col + vp.len, vp.row))]}
