@@ -69,6 +69,7 @@ eval_list env es = case es of
     Com "pan" : rest@(_ : _) -> eval_control panPat rest
     Com "fast" : rest@(_ : _) -> eval_mod fastPat rest
     Com "slow" : rest@(_ : _) -> eval_mod slowPat rest
+    Com "arp" : rest@(_ : _) -> eval_mod arpPat rest
     Com "iter" : rest@(_ : _) -> eval_mod iterPat rest
     Com "mask" : rest@(_ : _) -> eval_mod maskPat rest
     Com "euclid" : nparam : rest@(_ : _) -> do
@@ -334,3 +335,6 @@ iterPat = MondoMod getInt T.iter
 
 maskPat :: MondoMod Bool
 maskPat = MondoMod getBool T.mask
+
+arpPat :: MondoMod String
+arpPat = MondoMod getString T.arp

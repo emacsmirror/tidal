@@ -322,6 +322,7 @@ run = describe "tidal-mondo" do
         itEval "n 0..7 # sometimes (# lpf 1 # jux rev)" $ T.sometimes (T.jux T.rev . (# T.cutoff 1)) $ T.n "0..7"
         itEval "n 0..7 # sometimes (# lpf 1 # dec 1)" $ T.sometimes ((# T.decay 1) . (# T.cutoff 1)) $ T.n "0..7"
         itEval "s sitar # lpf (sine/3 # range 120 400)" $ T.sound "sitar" # T.cutoff (T.range 120 400 $ T.slow 3 T.sine)
+        itEval "n <a'm9'8 e'7sus4'8> # arp <up down>*2 # sub (n <12 [12 5]>/2)" $ T.n $ T.arp "<up down>*2" "<a'm9'8 e'7sus4'8>" |- "<12 [12 5]>/2"
 
         itEval "$ def melody [0 1 2 3] $ n melody" $ T.n "[0 1 2 3]"
         pure ()
