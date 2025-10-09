@@ -83,8 +83,10 @@ positionedTokenP = do
     token <- tokenP
     endPos <- P.getPosition
     spacesP
-    let col' = P.sourceColumn pos
-    pure $ Positioned token col' (P.sourceLine pos) (P.sourceColumn endPos - col')
+    -- Parsec column starts at 1, but tidal's source context position starts at 0
+    let col' = max 0 $ P.sourceColumn pos - 1
+    let len' = max 1 $ P.sourceColumn endPos - col' - 1
+    pure $ Positioned token col' (P.sourceLine pos) len'
 
 tokenize :: String -> Either P.ParseError [Positioned MondoToken]
 tokenize = P.runParser (spacesP *> P.many positionedTokenP <* P.eof) () "input"
