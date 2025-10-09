@@ -65,6 +65,12 @@ spacesP = P.skipMany (spaces <|> oneLineComment)
         P.skipMany (P.satisfy (/= '\n'))
         pure ()
 
+chordP :: TokenP String
+chordP = do
+    char <- P.letter
+    rest <- P.many (P.letter <|> P.digit <|> P.char '\'')
+    pure (char : rest)
+
 tokenP :: TokenP MondoToken
 tokenP =
     QuotesDouble <$> quoteP '"'
@@ -72,6 +78,7 @@ tokenP =
         <|> OpenToken <$> P.oneOf "(<[{"
         <|> CloseToken <$> P.oneOf ")>]}"
         <|> Number <$> numberP
+        <|> Plain <$> chordP
         <|> Plain <$> P.many1 (P.letter <|> P.digit <|> P.oneOf "-~_^#") -- identifier
         <|> Plain . (: []) <$> P.oneOf ops
         <|> Plain <$> P.string ".." -- range
