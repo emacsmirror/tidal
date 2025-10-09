@@ -67,6 +67,14 @@ eval_list env es = case es of
     Com "rev" : MList rest : [] -> T.rev <$> eval_list env rest
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n doubleParams -> eval_control mpat rest
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n intParams -> eval_control mpat rest
+    -- Generic p* control patterns
+    Com "pF" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getDouble (T.pF name)) rest
+    Com "pI" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getInt (T.pI name)) rest
+    Com "pN" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getNote (T.pN name)) rest
+    Com "pS" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getString (T.pS name)) rest
+    Com "pR" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getTime (T.pR name)) rest
+    Com "pB" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getBool (T.pB name)) rest
+    -- Modifiers patterns
     Com "fast" : rest@(_ : _) -> eval_mod fastPat rest
     Com "slow" : rest@(_ : _) -> eval_mod slowPat rest
     Com "arp" : rest@(_ : _) -> eval_mod arpPat rest
