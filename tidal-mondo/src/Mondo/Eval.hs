@@ -66,17 +66,15 @@ eval_list env es = case es of
         pure $ restPat |- subPat
     Com "rev" : MList rest : [] -> T.rev <$> eval_list env rest
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n doubleParams -> eval_control mpat rest
+    Com n : rest@(_ : _) | Just mpat <- Map.lookup n intParams -> eval_control mpat rest
     Com "fast" : rest@(_ : _) -> eval_mod fastPat rest
     Com "slow" : rest@(_ : _) -> eval_mod slowPat rest
     Com "arp" : rest@(_ : _) -> eval_mod arpPat rest
     Com "iter" : rest@(_ : _) -> eval_mod iterPat rest
     Com "mask" : rest@(_ : _) -> eval_mod maskPat rest
-    Com "euclid" : nparam : rest@(_ : _) -> do
+    Com n : nparam : rest@(_ : _) | Just mkpat <- Map.lookup n int2Mods -> do
         npat <- eval_ppat (mkMondoPat getInt) nparam
-        eval_mod (euclidPat npat) rest
-    Com "splice" : bitparam : rest@(_ : _) -> do
-        bitpat <- eval_ppat (mkMondoPat getInt) bitparam
-        eval_mod (splicePat bitpat) rest
+        eval_mod (mkpat npat) rest
     Com "jux" : param : MList rest : [] -> do
         f <- eval_fun env param
         restPat <- eval_list env rest
@@ -311,12 +309,6 @@ fastPat, slowPat :: MondoMod T.Time
 fastPat = MondoMod getTime T.fast
 slowPat = MondoMod getTime T.slow
 
-splicePat :: T.Pattern Int -> MondoMod Int
-splicePat bitpat = MondoMod getInt (T.splice bitpat)
-
-euclidPat :: T.Pattern Int -> MondoMod Int
-euclidPat n = MondoMod getInt (T.euclid n)
-
 iterPat :: MondoMod Int
 iterPat = MondoMod getInt T.iter
 
@@ -327,6 +319,17 @@ arpPat :: MondoMod String
 arpPat = MondoMod getString T.arp
 
 -- * Code gen...
+
+int2Mods :: Map String (T.Pattern Int -> MondoMod Int)
+int2Mods = Map.fromList $ map (\(n, f) -> (n, \p -> MondoMod getInt (f p))) funcs
+  where
+    funcs =
+        [ ("splice", T.splice)
+        , ("euclid", T.euclid)
+        , ("euclidInv", T.euclidInv)
+        , ("slice", T.slice)
+        , ("chew", T.chew)
+        ]
 
 -- render list with: `grep -r tidal-core ":: Pattern Double -> ControlPattern" | sed 's/.*.hs:\([^ ]+\).*/  , ("\1", T.\1)/'`
 doubleParams :: Map String (MondoParam Double)
@@ -543,4 +546,17 @@ doubleParams = Map.fromList $ map (\(n, f) -> (n, mkMondoDParam n getDouble f)) 
           ("dec", T.decay)
         , ("lpf", T.cutoff)
         , ("hpf", T.hcutoff)
+        ]
+
+-- render list with: `grep -r tidal-core ":: Pattern Int -> ControlPattern$" | grep -v "recv" | sed 's/.*.hs:\([^ ]*\).*/  , ("\1", T.\1)/'`
+intParams :: Map String (MondoParam Int)
+intParams = Map.fromList $ map (\(n, f) -> (n, mkMondoParam n getInt f)) funcs
+  where
+    funcs =
+        [ ("nrpnn", T.nrpnn)
+        , ("nrpnv", T.nrpnv)
+        , ("channel", T.channel)
+        , ("cut", T.cut)
+        , ("octave", T.octave)
+        , ("orbit", T.orbit)
         ]
