@@ -12,6 +12,7 @@ import Text.Parsec qualified as P
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.ParseBP qualified as T
 import Sound.Tidal.Pattern qualified as T
+import Sound.Tidal.UI qualified as T
 
 import Mondo.Parser
 import Mondo.Token (Positioned (..))
@@ -43,9 +44,43 @@ data MondoPat a b = MondoPat
     , rangeOp :: Maybe (T.Pattern Double -> T.Pattern Double -> T.Pattern Double -> T.Pattern a)
     , combiner :: T.ControlPattern -> T.ControlPattern -> T.ControlPattern
     -- ^ How to combine the resulting pattern with the remaining pipes.
-    , nested :: Maybe (Env -> [MondoExpr] -> Either P.ParseError (T.Pattern b))
+    , fromControl :: Maybe (T.ControlPattern -> T.Pattern b)
     -- ^ How to evaluated nested expression, see Note [Chaining Functions Locally]
     }
+
+{-
+Note [Chaining Functions Locally]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Supporting the feature described in https://strudel.cc/learn/mondo-notation/#chaining-functions-locally
+requires a work-around:
+The mondo expression: 's [bd hh bd (cp # delay .6)] # bank tr909'
+desugar into: '(bank tr909 (s (square bd hh bd (delay .6 cp))))'
+
+When evaluating the very last expression: '(delay .6 cp)', we don't know what 'cp' is.
+Thus, the parent control pattern is passed as the 'currentParam' environment, and it is
+applied when a param argument is plain.
+-}
+
+mkP :: String -> MondoExpr
+mkP n = MPlain (Positioned n 0 0 0)
+
+-- * Helpers to map mondo to tidal
+mkMondoParam :: String -> (MondoExpr -> Maybe (T.Pattern a)) -> (T.Pattern a -> T.ControlPattern) -> MondoParam a
+mkMondoParam name get app =
+    MondoPat
+        { localExpr = Just $ mkP name
+        , exprToPat = get
+        , patToControl = app
+        , colonOp = Just (T.|+|)
+        , andOp = Nothing
+        , rangeOp = Nothing
+        , combiner = (T.#)
+        , fromControl = Just id
+        }
+
+mkMondoDParam :: String -> (MondoExpr -> Maybe (T.Pattern Double)) -> (T.Pattern Double -> T.ControlPattern) -> MondoParam Double
+mkMondoDParam name get app = (mkMondoParam name get app){rangeOp = Just T.range}
 
 -- | Create the simplest pattern, useful for example to parse the notes from 'bd:<1 2>'
 mkMondoPat :: (MondoExpr -> Maybe (T.Pattern a)) -> MondoPat a a
