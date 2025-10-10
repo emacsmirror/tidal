@@ -5,18 +5,17 @@ module Mondo.Tidal where
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Sound.Tidal.Control qualified as T
-import Sound.Tidal.Core ((#), (|+|))
+import Sound.Tidal.Core ((|+|))
+import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
 import Sound.Tidal.Pattern qualified as T
+import Sound.Tidal.Stepwise qualified as T
 import Sound.Tidal.UI qualified as T
 
 import Mondo.Params
 import Mondo.Parser
 
 -- * Control Patterns
-
-sPat :: MondoParam String
-sPat = (mkMondoParam "s" getString T.sound){combiner = (flip (#))}
 
 nPat :: MondoParam T.Note
 nPat = (mkMondoParam "n" getNote T.n){combiner = (|+|)}
@@ -32,22 +31,110 @@ nColonPat = MondoPat Nothing getDouble (T.pF "n") Nothing Nothing Nothing const 
 colonSoundPat :: MondoParam Double
 colonSoundPat = (mkMondoParam "" getDouble (T.pF "n")){localExpr = Just $ MCommand "n-colon-pat"}
 
+sParams :: Map String (MondoParam String)
+sParams = Map.fromList $ map (\(n, f) -> (n, mkMondoParam n getString f)) funcs
+  where
+    funcs =
+        [ ("sound", T.sound)
+        , ("cc", T.cc)
+        , ("nrpn", T.nrpn)
+        , ("grain'", T.grain')
+        , ("drum", T.drum)
+        , ("bank", T.bank)
+        , ("midicmd", T.midicmd)
+        , ("toArg", T.toArg)
+        , ("unit", T.unit)
+        , ("vowel", T.vowel)
+        , ("s", T.s)
+        ]
+
 -- * Modifier Patterns
-
-fastPat, slowPat :: MondoMod T.Time
-fastPat = MondoMod getTime T.fast
-slowPat = MondoMod getTime T.slow
-
-iterPat :: MondoMod Int
-iterPat = MondoMod getInt T.iter
-
-maskPat :: MondoMod Bool
-maskPat = MondoMod getBool T.mask
 
 arpPat :: MondoMod String
 arpPat = MondoMod getString T.arp
 
--- * Code gen...
+pMods :: Map String (T.Pattern a -> T.Pattern a)
+pMods =
+    Map.fromList
+        [ ("trigger", T.trigger)
+        , ("qtrigger", T.qtrigger)
+        , ("qt", T.qt)
+        , ("ctrigger", T.ctrigger)
+        , ("rtrigger", T.rtrigger)
+        , ("ftrigger", T.ftrigger)
+        , ("mono", T.mono)
+        , ("splitQueries", T.splitQueries)
+        , ("rev", T.rev)
+        , ("filterOnsets", T.filterOnsets)
+        , ("filterDigital", T.filterDigital)
+        , ("filterAnalog", T.filterAnalog)
+        , ("degrade", T.degrade)
+        , ("brak", T.brak)
+        , ("palindrome", T.palindrome)
+        , ("stretch", T.stretch)
+        , ("loopFirst", T.loopFirst)
+        , ("arpeggiate", T.arpeggiate)
+        , ("arpg", T.arpg)
+        , ("rolled", T.rolled)
+        , ("press", T.press)
+        ]
+
+-- sometimes and often are not strictly for control pattern, but it's simpler to restrict them here.
+ppMods :: Map String ((T.ControlPattern -> T.ControlPattern) -> T.ControlPattern -> T.ControlPattern)
+ppMods =
+    Map.fromList
+        [ ("sometimes", T.sometimes)
+        , ("often", T.often)
+        , ("jux", T.jux)
+        ]
+
+-- basic mods: `grep -r ":: Pattern Int -> Pattern . -> Pattern .$" | sed 's/.*.hs:\([^ ]*\).*/         , ("\1", T.\1)/'`
+timeMods :: Map String (MondoMod T.Time)
+timeMods = Map.fromList $ map (\(n, f) -> (n, MondoMod getTime f)) funcs
+  where
+    funcs =
+        [ ("slowSqueeze", T.slowSqueeze)
+        , ("sparsity", T.sparsity)
+        , ("fastGap", T.fastGap)
+        , ("densityGap", T.densityGap)
+        , ("fast", T.fast)
+        , ("fastSqueeze", T.fastSqueeze)
+        , ("density", T.density)
+        , ("slow", T.slow)
+        , ("steptake", T.steptake)
+        , ("stepdrop", T.stepdrop)
+        , ("trunc", T.trunc)
+        , ("linger", T.linger)
+        , ("segment", T.segment)
+        , ("discretise", T.discretise)
+        , ("timeLoop", T.timeLoop)
+        , ("swing", T.swing)
+        , ("pressBy", T.pressBy)
+        ]
+
+boolMods :: Map String (MondoMod Bool)
+boolMods = Map.fromList $ map (\(n, f) -> (n, MondoMod getBool f)) funcs
+  where
+    funcs =
+        [ ("reset", T.reset)
+        , ("restart", T.restart)
+        , ("struct", T.struct)
+        , ("mask", T.mask)
+        ]
+
+intMods :: Map String (MondoMod Int)
+intMods = Map.fromList $ map (\(n, f) -> (n, MondoMod getInt f)) funcs
+  where
+    funcs =
+        [ ("repeatCycles", T.repeatCycles)
+        , ("iter", T.iter)
+        , ("iter'", T.iter')
+        , ("substruct'", T.substruct')
+        , ("stripe", T.stripe)
+        , ("slowstripe", T.slowstripe)
+        , ("shuffle", T.shuffle)
+        , ("scramble", T.scramble)
+        ]
 
 int2Mods :: Map String (T.Pattern Int -> MondoMod Int)
 int2Mods = Map.fromList $ map (\(n, f) -> (n, \p -> MondoMod getInt (f p))) funcs

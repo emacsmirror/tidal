@@ -47,14 +47,14 @@ eval_top _ v = mkError ("expected a list, got: " <> show v) (P.newPos "input" 1 
 
 eval_list :: Env -> [MondoExpr] -> Either ParseError T.ControlPattern
 eval_list env es = case es of
-    Com "s" : rest -> eval_control sPat rest
     -- When notes are at the end, just eval the pattern
     Com "n" : param : [] -> eval_notes param
-    -- When notes are after a sound, eval the sound first then apply the notes with |+|
+    -- When notes are in the middle, eval the rest first then apply the notes with |+|
     Com "n" : param : MList rest : [] -> do
         restPat <- eval_list env rest
         notePat <- eval_notes param
         pure $ restPat |+| notePat
+    -- add/sub are custom mondo functions to control how the pattern are applied to the chain
     Com "add" : MList param : MList rest : [] -> do
         restPat <- eval_list env rest
         addPat <- eval_list env param
@@ -63,7 +63,8 @@ eval_list env es = case es of
         restPat <- eval_list env rest
         subPat <- eval_list env param
         pure $ restPat |- subPat
-    Com "rev" : MList rest : [] -> T.rev <$> eval_list env rest
+    -- ControlPatterns like 'sound'
+    Com n : rest | Just mpat <- Map.lookup n sParams -> eval_control mpat rest
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n doubleParams -> eval_control mpat rest
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n intParams -> eval_control mpat rest
     -- Generic p* control patterns
@@ -73,25 +74,25 @@ eval_list env es = case es of
     Com "pS" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getString (T.pS name)) rest
     Com "pR" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getTime (T.pR name)) rest
     Com "pB" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getBool (T.pB name)) rest
-    -- Modifiers patterns
-    Com "fast" : rest@(_ : _) -> eval_mod fastPat rest
-    Com "slow" : rest@(_ : _) -> eval_mod slowPat rest
-    Com "arp" : rest@(_ : _) -> eval_mod arpPat rest
-    Com "iter" : rest@(_ : _) -> eval_mod iterPat rest
-    Com "mask" : rest@(_ : _) -> eval_mod maskPat rest
+    -- Direct modifiers like 'rev'
+    Com n : MList rest : [] | Just f <- Map.lookup n pMods -> f <$> eval_list env rest
+    -- Patterns modifiers like 'fast'
+    Com n : rest@(_ : _) | Just mpat <- Map.lookup n timeMods -> eval_mod mpat rest
+    Com n : rest@(_ : _) | Just mpat <- Map.lookup n boolMods -> eval_mod mpat rest
+    Com n : rest@(_ : _) | Just mpat <- Map.lookup n intMods -> eval_mod mpat rest
+    Com "arp" : rest@(_ : _) -> eval_mod arpPat rest -- arp is the only string modifier
     Com n : nparam : rest@(_ : _) | Just mkpat <- Map.lookup n int2Mods -> do
         npat <- eval_ppat (mkMondoPat getInt) nparam
         eval_mod (mkpat npat) rest
-    Com "jux" : param : MList rest : [] -> do
+    Com n : param : MList rest : [] | Just mkMod <- Map.lookup n ppMods -> do
         f <- eval_fun env param
         restPat <- eval_list env rest
-        pure $ T.jux f restPat
-    Com "sometimes" : param : MList rest : [] -> do
-        f <- eval_fun env param
-        restPat <- eval_list env rest
-        pure $ T.sometimes f restPat
+        pure $ mkMod f restPat
+    -- scale is custom in mondo so that it can be used after the notes like 'n 0 # scale minor'
     Com "scale" : param : MList rest : [] -> eval_scale param rest
+    -- n-colon-pat is injected by the eval_pat, when evaluating expression like 'bd:<(1 # lpf 42)>'
     MCommand "n-colon-pat" : rest -> eval_control nColonPat rest
+    -- stack separate mondo pattern, it is injected with '$'
     MCommand "stack" : rest -> T.stack <$> traverse (eval_top env) rest
     x : _ -> mkError ("unexpected command: " <> show es) (exprPos x)
     [] -> mkError "expected command!" (P.newPos "input" 1 1)
@@ -144,11 +145,11 @@ eval_list env es = case es of
 eval_fun :: Env -> MondoExpr -> Either ParseError (T.ControlPattern -> T.ControlPattern)
 eval_fun env expr = case expr of
     MList [MLam _ body] -> eval_fun env body
-    MList (Com "jux" : x : rest) -> do
+    MList (Com n : x : rest) | Just pf <- Map.lookup n ppMods -> do
         f <- eval_fun env x
-        eval_compo (T.jux f) rest
+        eval_compo (pf f) rest
     MCommand "_" -> pure id
-    Com "rev" -> pure T.rev
+    Com n | Just f <- Map.lookup n pMods -> pure f
     MList xs -> case eval_list env xs of
         Left _ -> mkError ("arg is not fun: " <> show expr) (exprPos expr)
         Right p -> pure (# p)
@@ -224,7 +225,7 @@ eval_pat env mpat expr = case expr of
     MList [MCommand "@", MValue (Pos y), x] -> do
         p <- snd <$> eval_pat env mpat x
         pure (fromInteger $ round y, p)
-    -- x&y:z
+    -- x&y:z euclidean, see: https://codeberg.org/uzu/strudel/pulls/1630
     MList [MCommand "&", x, xs] -> do
         (l, xPat) <- eval_pat env mpat x
         let epat = mpat{localExpr = Just (MCommand "&"), andOp = Just (\yPat zPat -> T.euclid yPat zPat xPat)}
@@ -233,7 +234,7 @@ eval_pat env mpat expr = case expr of
     Com "~" -> pure (1, T.silence)
     -- see Note [Chaining Functions Locally]
     MList xs | Just fromControl <- mpat.fromControl -> (1,) <$> fromControl <$> eval_list (env{currentParam = mpat.localExpr}) xs
-    -- a def
+    -- a def variable
     Com n | Just v <- lookup n env.defs -> eval_pat env mpat v
     -- this is a value, make it a pattern.
     _ | Just v <- mpat.exprToPat expr -> pure $ (1, mpat.patToControl v)
