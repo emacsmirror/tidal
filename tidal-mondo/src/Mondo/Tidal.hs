@@ -163,6 +163,7 @@ pTime_pA_pA =
         , ("timeLoop", T.timeLoop)
         , ("swing", T.swing)
         , ("pressBy", T.pressBy)
+        , ("ply", T.ply)
         ]
 
 pBool_pA_pA :: Map String (Pattern Bool -> Pattern a -> Pattern a)
