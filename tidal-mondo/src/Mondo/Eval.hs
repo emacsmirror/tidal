@@ -75,18 +75,18 @@ eval_list env es = case es of
     Com "pR" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getTime (T.pR name)) rest
     Com "pB" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getBool (T.pB name)) rest
     -- Direct modifiers like 'rev'
-    Com n : MList rest : [] | Just f <- Map.lookup n pMods -> f <$> eval_list env rest
-    Com n : MList rest : [] | Just f <- Map.lookup n pCMods -> f <$> eval_list env rest
-    Com n : MValue v : rest | Just f <- Map.lookup n time2Mods -> f (toRational v.value) <$> eval_list env rest
+    Com n : MList rest : [] | Just f <- Map.lookup n ppas -> f <$> eval_list env rest
+    Com n : MList rest : [] | Just f <- Map.lookup n pps -> f <$> eval_list env rest
+    Com n : MValue v : rest | Just f <- Map.lookup n time2pps -> f (toRational v.value) <$> eval_list env rest
     -- Patterns modifiers like 'fast'
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n timeMods -> eval_mod mpat rest
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n boolMods -> eval_mod mpat rest
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n intMods -> eval_mod mpat rest
     Com "arp" : rest@(_ : _) -> eval_mod arpPat rest -- arp is the only string modifier
-    Com n : nparam : rest@(_ : _) | Just mkpat <- Map.lookup n int2Mods -> do
+    Com n : nparam : rest@(_ : _) | Just mkpat <- Map.lookup n pInt2intMods -> do
         npat <- eval_ppat (mkMondoPat getInt) nparam
         eval_mod (mkpat npat) rest
-    Com n : param : MList rest : [] | Just mkMod <- Map.lookup n ppMods -> do
+    Com n : param : MList rest : [] | Just mkMod <- Map.lookup n pp2pps -> do
         f <- eval_fun env param
         restPat <- eval_list env rest
         pure $ mkMod f restPat
@@ -147,12 +147,12 @@ eval_list env es = case es of
 eval_fun :: Env -> MondoExpr -> Either ParseError (T.ControlPattern -> T.ControlPattern)
 eval_fun env expr = case expr of
     MList [MLam _ body] -> eval_fun env body
-    MList (Com n : x : rest) | Just pf <- Map.lookup n ppMods -> do
+    MList (Com n : x : rest) | Just pf <- Map.lookup n pp2pps -> do
         f <- eval_fun env x
         eval_compo (pf f) rest
     MCommand "_" -> pure id
-    Com n | Just f <- Map.lookup n pMods -> pure f
-    Com n | Just f <- Map.lookup n pCMods -> pure f
+    Com n | Just f <- Map.lookup n ppas -> pure f
+    Com n | Just f <- Map.lookup n pps -> pure f
     MList xs -> case eval_list env xs of
         Left _ -> mkError ("arg is not fun: " <> show expr) (exprPos expr)
         Right p -> pure (# p)

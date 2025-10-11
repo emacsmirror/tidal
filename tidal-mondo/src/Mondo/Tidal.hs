@@ -52,8 +52,8 @@ sParams = Map.fromList $ map (\(n, f) -> (n, mkMondoParam n getString f)) funcs
 arpPat :: MondoMod String
 arpPat = MondoMod getString T.arp
 
-pMods :: Map String (T.Pattern a -> T.Pattern a)
-pMods =
+ppas :: Map String (T.Pattern a -> T.Pattern a)
+ppas =
     Map.fromList
         [ ("trigger", T.trigger)
         , ("qtrigger", T.qtrigger)
@@ -78,22 +78,22 @@ pMods =
         , ("press", T.press)
         ]
 
-pCMods :: Map String (T.ControlPattern -> T.ControlPattern)
-pCMods =
+pps :: Map String (T.ControlPattern -> T.ControlPattern)
+pps =
     Map.fromList
         [ ("ghost", T.ghost)
         ]
 
-time2Mods :: Map String (T.Time -> T.ControlPattern -> T.ControlPattern)
-time2Mods =
+time2pps :: Map String (T.Time -> T.ControlPattern -> T.ControlPattern)
+time2pps =
     Map.fromList
         [ ("ghost'", T.ghost')
         , ("_pressBy", T._pressBy)
         ]
 
 -- sometimes and often are not strictly for control pattern, but it's simpler to restrict them here.
-ppMods :: Map String ((T.ControlPattern -> T.ControlPattern) -> T.ControlPattern -> T.ControlPattern)
-ppMods =
+pp2pps :: Map String ((T.ControlPattern -> T.ControlPattern) -> T.ControlPattern -> T.ControlPattern)
+pp2pps =
     Map.fromList
         [ ("sometimes", T.sometimes)
         , ("often", T.often)
@@ -148,8 +148,8 @@ intMods = Map.fromList $ map (\(n, f) -> (n, MondoMod getInt f)) funcs
         , ("scramble", T.scramble)
         ]
 
-int2Mods :: Map String (T.Pattern Int -> MondoMod Int)
-int2Mods = Map.fromList $ map (\(n, f) -> (n, \p -> MondoMod getInt (f p))) funcs
+pInt2intMods :: Map String (T.Pattern Int -> MondoMod Int)
+pInt2intMods = Map.fromList $ map (\(n, f) -> (n, \p -> MondoMod getInt (f p))) funcs
   where
     funcs =
         [ ("splice", T.splice)
