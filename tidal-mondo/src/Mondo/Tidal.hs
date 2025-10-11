@@ -41,6 +41,23 @@ pStr_pC =
         , ("s", T.s)
         ]
 
+pFrac :: (Fractional a) => Map String (T.Pattern a)
+pFrac =
+    Map.fromList
+        [ ("sine", T.sine)
+        , ("square", T.square)
+        , ("cosine", T.cosine)
+        , ("rand", T.rand)
+        , ("perlin", T.perlin)
+        ]
+
+pFracReal :: (Fractional a, Real a) => Map String (T.Pattern a)
+pFracReal =
+    Map.fromList
+        [ ("saw", T.saw)
+        , ("tri", T.tri)
+        ]
+
 pA_pA :: Map String (T.Pattern a -> T.Pattern a)
 pA_pA =
     Map.fromList

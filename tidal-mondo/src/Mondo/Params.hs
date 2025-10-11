@@ -7,7 +7,6 @@
 
 module Mondo.Params where
 
-import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import GHC.Float (float2Double)
 import Text.Parsec qualified as P
@@ -18,6 +17,7 @@ import Sound.Tidal.Pattern qualified as T
 import Sound.Tidal.UI qualified as T
 
 import Mondo.Parser
+import Mondo.Tidal
 import Mondo.Token (Positioned (..))
 
 -- | The 'Env' keeps track of attributes that can be set through pipes
@@ -97,22 +97,25 @@ type MondoParam a = MondoPat a T.ValueMap
 getDouble :: MondoExpr -> Maybe (T.Pattern Double)
 getDouble expr = case expr of
     MValue v -> Just . patWithPos $ float2Double <$> v
-    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n fPat -> Just $ p
-    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n frPat -> Just $ p
+    MPlain (Positioned n _ _ _)
+        | Just p <- Map.lookup n pFrac -> Just $ p
+        | Just p <- Map.lookup n pFracReal -> Just $ p
     _ -> Nothing
 
 getTime :: MondoExpr -> Maybe (T.Pattern T.Time)
 getTime expr = case expr of
     MValue v -> Just . patWithPos $ toRational <$> v
-    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n fPat -> Just $ toRational @Double <$> p
-    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n frPat -> Just $ toRational @Double <$> p
+    MPlain (Positioned n _ _ _)
+        | Just p <- Map.lookup n pFrac -> Just $ toRational @Double <$> p
+        | Just p <- Map.lookup n pFracReal -> Just $ toRational @Double <$> p
     _ -> Nothing
 
 getInt :: MondoExpr -> Maybe (T.Pattern Int)
 getInt expr = case expr of
     MValue v -> Just . patWithPos $ round <$> v
-    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n fPat -> Just $ round @Double <$> p
-    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n frPat -> Just $ round @Double <$> p
+    MPlain (Positioned n _ _ _)
+        | Just p <- Map.lookup n pFrac -> Just $ round @Double <$> p
+        | Just p <- Map.lookup n pFracReal -> Just $ round @Double <$> p
     _ -> Nothing
 
 getBool :: MondoExpr -> Maybe (T.Pattern Bool)
@@ -127,7 +130,8 @@ getString expr = case expr of
 
 getNote :: MondoExpr -> Maybe (T.Pattern T.Note)
 getNote expr = case expr of
-    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n fPat -> Just $ T.Note <$> p
+    MPlain (Positioned n _ _ _)
+        | Just p <- Map.lookup n pFrac -> Just $ T.Note <$> p
     MPlain s -> case P.runParser T.pNote 0 "input" s.value of
         Left err -> error (show err)
         Right v -> Just (T.withContext (addPos s) $ T.toPat v)
@@ -139,19 +143,3 @@ patWithPos v = T.withContext (addPos v) $ pure v.value
 
 addPos :: Positioned a -> T.Context -> T.Context
 addPos vp c = c{T.contextPosition = [((vp.col, vp.row), (vp.col + vp.len, vp.row))]}
-
-fPat :: (Fractional a) => Map String (T.Pattern a)
-fPat =
-    Map.fromList
-        [ ("sine", T.sine)
-        , ("square", T.square)
-        , ("cosine", T.cosine)
-        , ("rand", T.rand)
-        ]
-
-frPat :: (Fractional a, Real a) => Map String (T.Pattern a)
-frPat =
-    Map.fromList
-        [ ("saw", T.saw)
-        , ("tri", T.tri)
-        ]
