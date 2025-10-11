@@ -106,11 +106,9 @@ pp2pps =
         , ("jux", T.jux)
         ]
 
--- basic mods: `grep -r ":: Pattern Int -> Pattern . -> Pattern .$" | sed 's/.*.hs:\([^ ]*\).*/         , ("\1", T.\1)/'`
-timeMods :: Map String (MondoMod T.Time)
-timeMods = Map.fromList $ map (\(n, f) -> (n, MondoMod getTime f)) funcs
-  where
-    funcs =
+pTime2ppa :: Map String (T.Pattern T.Time -> T.Pattern a -> T.Pattern a)
+pTime2ppa =
+    Map.fromList
         [ ("slowSqueeze", T.slowSqueeze)
         , ("sparsity", T.sparsity)
         , ("fastGap", T.fastGap)
@@ -129,6 +127,9 @@ timeMods = Map.fromList $ map (\(n, f) -> (n, MondoMod getTime f)) funcs
         , ("swing", T.swing)
         , ("pressBy", T.pressBy)
         ]
+
+timeMods :: Map String (MondoMod T.Time)
+timeMods = MondoMod getTime <$> pTime2ppa
 
 boolMods :: Map String (MondoMod Bool)
 boolMods = Map.fromList $ map (\(n, f) -> (n, MondoMod getBool f)) funcs

@@ -245,6 +245,7 @@ eval_pat env mpat expr = case expr of
         (l,) <$> T.timecat <$> traverse (eval_pat env epat) [xs]
     -- ~
     Com "~" -> pure (1, T.silence)
+    MList [Com n, arg, rest] | Just tmod <- Map.lookup n pTime2ppa -> eval_op getTime tmod arg rest
     -- see Note [Chaining Functions Locally]
     MList xs | Just fromControl <- mpat.fromControl -> (1,) <$> fromControl <$> eval_list (env{currentParam = mpat.localExpr}) xs
     -- a def variable
