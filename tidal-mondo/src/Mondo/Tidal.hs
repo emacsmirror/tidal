@@ -53,6 +53,12 @@ pInt_pNum =
         [ ("irand", T.irand)
         ]
 
+pENum_pENum :: (Enum a, Num a) => Map String (T.Pattern a -> T.Pattern a)
+pENum_pENum =
+    Map.fromList
+        [ ("scan", T.scan)
+        ]
+
 pFrac :: (Fractional a) => Map String (T.Pattern a)
 pFrac =
     Map.fromList
