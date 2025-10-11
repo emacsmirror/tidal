@@ -1,5 +1,19 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 
+{- | This module regroups the tidal functions by their types.
+The collection are named after the function's arguments, separated by '_':
+* pA is 'Pattern a'
+* pC is 'ControlPattern'
+* pStr is 'Pattern String'
+* pInt is 'Pattern Int'
+* time is 'Time'
+
+Examples:
+* pStr_pC is 'Pattern String -> ControlPattern'
+* time_pC_pC is 'Time -> ControlPattern -> ControlPattern'
+
+Note: perhaps this should be part of tidal-core?
+-}
 module Mondo.Tidal where
 
 import Data.Map.Strict (Map)
@@ -11,29 +25,9 @@ import Sound.Tidal.Pattern qualified as T
 import Sound.Tidal.Stepwise qualified as T
 import Sound.Tidal.UI qualified as T
 
-import Mondo.Params
-import Mondo.Parser
-
--- * Control Patterns
-
-nPat :: MondoParam T.Note
-nPat = mkMondoNParam "n" getNote T.n
-
-mkScalePat :: (T.Pattern Int -> T.ControlPattern) -> MondoParam Int
-mkScalePat scale = mkMondoParam "scale" getInt scale
-
--- * Grp Patterns
-
-nColonPat :: MondoParam Double
-nColonPat = MondoPat Nothing getDouble (T.pF "n") Nothing Nothing Nothing Nothing Nothing
-
-colonSoundPat :: MondoParam Double
-colonSoundPat = (mkMondoParam "" getDouble (T.pF "n")){localExpr = Just $ MCommand "n-colon-pat"}
-
-sParams :: Map String (MondoParam String)
-sParams = Map.fromList $ map (\(n, f) -> (n, mkMondoParam n getString f)) funcs
-  where
-    funcs =
+pStr_pC :: Map String (T.Pattern String -> T.ControlPattern)
+pStr_pC =
+    Map.fromList
         [ ("sound", T.sound)
         , ("cc", T.cc)
         , ("nrpn", T.nrpn)
@@ -47,10 +41,8 @@ sParams = Map.fromList $ map (\(n, f) -> (n, mkMondoParam n getString f)) funcs
         , ("s", T.s)
         ]
 
--- * Modifier Patterns
-
-ppas :: Map String (T.Pattern a -> T.Pattern a)
-ppas =
+pA_pA :: Map String (T.Pattern a -> T.Pattern a)
+pA_pA =
     Map.fromList
         [ ("trigger", T.trigger)
         , ("qtrigger", T.qtrigger)
@@ -75,36 +67,36 @@ ppas =
         , ("press", T.press)
         ]
 
-pTimepTime2ppas :: Map String (T.Pattern T.Time -> T.Pattern T.Time -> T.ControlPattern -> T.ControlPattern)
-pTimepTime2ppas =
+pTime_pTime_pC_pC :: Map String (T.Pattern T.Time -> T.Pattern T.Time -> T.ControlPattern -> T.ControlPattern)
+pTime_pTime_pC_pC =
     Map.fromList
         [ ("ribbon", T.ribbon)
         ]
 
-pps :: Map String (T.ControlPattern -> T.ControlPattern)
-pps =
+pC_pC :: Map String (T.ControlPattern -> T.ControlPattern)
+pC_pC =
     Map.fromList
         [ ("ghost", T.ghost)
         ]
 
-time2pps :: Map String (T.Time -> T.ControlPattern -> T.ControlPattern)
-time2pps =
+time_pC_pC :: Map String (T.Time -> T.ControlPattern -> T.ControlPattern)
+time_pC_pC =
     Map.fromList
         [ ("ghost'", T.ghost')
         , ("_pressBy", T._pressBy)
         ]
 
 -- sometimes and often are not strictly for control pattern, but it's simpler to restrict them here.
-pp2pps :: Map String ((T.ControlPattern -> T.ControlPattern) -> T.ControlPattern -> T.ControlPattern)
-pp2pps =
+pCpC_pC_pC :: Map String ((T.ControlPattern -> T.ControlPattern) -> T.ControlPattern -> T.ControlPattern)
+pCpC_pC_pC =
     Map.fromList
         [ ("sometimes", T.sometimes)
         , ("often", T.often)
         , ("jux", T.jux)
         ]
 
-pTime2ppa :: Map String (T.Pattern T.Time -> T.Pattern a -> T.Pattern a)
-pTime2ppa =
+pTime_pA_pA :: Map String (T.Pattern T.Time -> T.Pattern a -> T.Pattern a)
+pTime_pA_pA =
     Map.fromList
         [ ("slowSqueeze", T.slowSqueeze)
         , ("sparsity", T.sparsity)
@@ -125,8 +117,8 @@ pTime2ppa =
         , ("pressBy", T.pressBy)
         ]
 
-pBool2ppa :: Map String (T.Pattern Bool -> T.Pattern a -> T.Pattern a)
-pBool2ppa =
+pBool_pA_pA :: Map String (T.Pattern Bool -> T.Pattern a -> T.Pattern a)
+pBool_pA_pA =
     Map.fromList
         [ ("reset", T.reset)
         , ("restart", T.restart)
@@ -134,8 +126,8 @@ pBool2ppa =
         , ("mask", T.mask)
         ]
 
-pInt2ppa :: Map String (T.Pattern Int -> T.Pattern a -> T.Pattern a)
-pInt2ppa =
+pInt_pA_pA :: Map String (T.Pattern Int -> T.Pattern a -> T.Pattern a)
+pInt_pA_pA =
     Map.fromList
         [ ("repeatCycles", T.repeatCycles)
         , ("iter", T.iter)
@@ -147,8 +139,8 @@ pInt2ppa =
         , ("scramble", T.scramble)
         ]
 
-pIntpInt2pps :: Map String (T.Pattern Int -> T.Pattern Int -> T.ControlPattern -> T.ControlPattern)
-pIntpInt2pps =
+pInt_pInt_pC_pC :: Map String (T.Pattern Int -> T.Pattern Int -> T.ControlPattern -> T.ControlPattern)
+pInt_pInt_pC_pC =
     Map.fromList
         [ ("splice", T.splice)
         , ("euclid", T.euclid)
@@ -158,10 +150,9 @@ pIntpInt2pps =
         ]
 
 -- render list with: `grep -r tidal-core ":: Pattern Double -> ControlPattern" | sed 's/.*.hs:\([^ ]+\).*/  , ("\1", T.\1)/'`
-doubleParams :: Map String (MondoParam Double)
-doubleParams = Map.fromList $ map (\(n, f) -> (n, mkMondoDParam n getDouble f)) funcs
-  where
-    funcs =
+pDouble_pC :: Map String (T.Pattern Double -> T.ControlPattern)
+pDouble_pC =
+    Map.fromList
         [ ("accelerate", T.accelerate)
         , ("amp", T.amp)
         , ("attack", T.attack)
@@ -375,10 +366,9 @@ doubleParams = Map.fromList $ map (\(n, f) -> (n, mkMondoDParam n getDouble f)) 
         ]
 
 -- render list with: `grep -r tidal-core ":: Pattern Int -> ControlPattern$" | grep -v "recv" | sed 's/.*.hs:\([^ ]*\).*/  , ("\1", T.\1)/'`
-intParams :: Map String (MondoParam Int)
-intParams = Map.fromList $ map (\(n, f) -> (n, mkMondoParam n getInt f)) funcs
-  where
-    funcs =
+pInt_pC :: Map String (T.Pattern Int -> T.ControlPattern)
+pInt_pC =
+    Map.fromList
         [ ("nrpnn", T.nrpnn)
         , ("nrpnv", T.nrpnv)
         , ("channel", T.channel)

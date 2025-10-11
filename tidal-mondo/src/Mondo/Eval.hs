@@ -65,9 +65,9 @@ eval_list env es = case es of
         pure $ restPat |- subPat
     -- ControlPatterns like 'sound'
     Com n : param : rest
-        | Just mpat <- Map.lookup n sParams -> eval_control mpat param rest
-        | Just mpat <- Map.lookup n doubleParams -> eval_control mpat param rest
-        | Just mpat <- Map.lookup n intParams -> eval_control mpat param rest
+        | Just f <- Map.lookup n pStr_pC -> eval_control (mkMondoParam n getString f) param rest
+        | Just f <- Map.lookup n pDouble_pC -> eval_control (mkMondoDParam n f) param rest
+        | Just f <- Map.lookup n pInt_pC -> eval_control (mkMondoParam n getInt f) param rest
     -- Generic p* control patterns
     Com p : Com name : param : rest
         | p == "pF" -> eval_control (mkMondoParam name getDouble (T.pF name)) param rest
@@ -78,33 +78,33 @@ eval_list env es = case es of
         | p == "pB" -> eval_control (mkMondoParam name getBool (T.pB name)) param rest
     -- Direct modifiers like 'rev'
     Com n : MList rest : []
-        | Just f <- Map.lookup n ppas -> f <$> eval_list env rest
-        | Just f <- Map.lookup n pps -> f <$> eval_list env rest
+        | Just f <- Map.lookup n pA_pA -> f <$> eval_list env rest
+        | Just f <- Map.lookup n pC_pC -> f <$> eval_list env rest
     -- Modifier with literal param
     Com n : MValue v : rest
-        | Just f <- Map.lookup n time2pps -> f (toRational v.value) <$> eval_list env rest
+        | Just f <- Map.lookup n time_pC_pC -> f (toRational v.value) <$> eval_list env rest
     -- Modifier with 2 pattern params
     Com n : param1 : param2 : rest
-        | Just f <- Map.lookup n pTimepTime2ppas -> do
+        | Just f <- Map.lookup n pTime_pTime_pC_pC -> do
             npat1 <- eval_ppat (mkMondoPat getTime) param1
             eval_mod getTime (f npat1) param2 rest
-        | Just f <- Map.lookup n pIntpInt2pps -> do
+        | Just f <- Map.lookup n pInt_pInt_pC_pC -> do
             npat <- eval_ppat (mkMondoPat getInt) param1
             eval_mod getInt (f npat) param2 rest
     -- Modifier with 1 pattern param
     Com n : param : rest
-        | Just f <- Map.lookup n pTime2ppa -> eval_mod getTime f param rest
-        | Just f <- Map.lookup n pBool2ppa -> eval_mod getBool f param rest
-        | Just f <- Map.lookup n pInt2ppa -> eval_mod getInt f param rest
+        | Just f <- Map.lookup n pTime_pA_pA -> eval_mod getTime f param rest
+        | Just f <- Map.lookup n pBool_pA_pA -> eval_mod getBool f param rest
+        | Just f <- Map.lookup n pInt_pA_pA -> eval_mod getInt f param rest
     Com "arp" : param : rest -> eval_mod getString T.arp param rest -- arp is the only string modifier
-    Com n : param : MList rest : [] | Just mkMod <- Map.lookup n pp2pps -> do
+    Com n : param : MList rest : [] | Just mkMod <- Map.lookup n pCpC_pC_pC -> do
         f <- eval_fun env param
         restPat <- eval_list env rest
         pure $ mkMod f restPat
     -- scale is custom in mondo so that it can be used after the notes like 'n 0 # scale minor'
     Com "scale" : param : MList rest : [] -> eval_scale param rest
     -- n-colon-pat is injected by the eval_pat, when evaluating expression like 'bd:<(1 # lpf 42)>'
-    MCommand "n-colon-pat" : param : rest -> eval_control nColonPat param rest
+    MCommand "n-colon-pat" : param : rest -> eval_control (mkMondoParam "" getDouble (T.pF "n")) param rest
     -- stack separate mondo pattern, it is injected with '$'
     MCommand "stack" : rest -> T.stack <$> traverse (eval_top env) rest
     x : _ -> mkError ("unexpected command: " <> show es) (exprPos x)
@@ -114,9 +114,9 @@ eval_list env es = case es of
 
     eval_notes param = case env.envScale of
         -- No scale defined, eval notes from pattern
-        Nothing -> eval_ppat nPat param
+        Nothing -> eval_ppat (mkMondoNParam "n" getNote T.n) param
         -- Scale was piped, eval int from pattern
-        Just scale -> eval_ppat (mkScalePat scale) param
+        Just scale -> eval_ppat (mkMondoParam "scale" getInt scale) param
 
     eval_scale param rest = do
         scalePat <- eval_ppat (mkMondoPat getString) param
@@ -156,13 +156,13 @@ eval_list env es = case es of
 eval_fun :: Env -> MondoExpr -> Either ParseError (T.ControlPattern -> T.ControlPattern)
 eval_fun env expr = case expr of
     MList [MLam _ body] -> eval_fun env body
-    MList (Com n : x : rest) | Just pf <- Map.lookup n pp2pps -> do
+    MList (Com n : x : rest) | Just pf <- Map.lookup n pCpC_pC_pC -> do
         f <- eval_fun env x
         eval_compo (pf f) rest
     MCommand "_" -> pure id
     Com n
-        | Just f <- Map.lookup n ppas -> pure f
-        | Just f <- Map.lookup n pps -> pure f
+        | Just f <- Map.lookup n pA_pA -> pure f
+        | Just f <- Map.lookup n pC_pC -> pure f
     MList xs -> case eval_list env xs of
         Left _ -> mkError ("arg is not fun: " <> show expr) (exprPos expr)
         Right p -> pure (# p)
@@ -225,6 +225,7 @@ eval_pat env mpat expr = case expr of
     MList [MCommand ":", note, sound]
         | Just (Com "s") <- mpat.localExpr
         , Just colonOp <- mpat.colonOp -> do
+            let colonSoundPat = (mkMondoParam "" getDouble (T.pF "n")){localExpr = Just $ MCommand "n-colon-pat"}
             (l, soundPat) <- eval_pat env mpat sound
             notePat <- snd <$> eval_pat env colonSoundPat note
             pure (l, colonOp soundPat notePat)
@@ -252,7 +253,7 @@ eval_pat env mpat expr = case expr of
     Com "~" -> pure (1, T.silence)
     -- Modifier with 1 pattern param, like fast or segment
     MList [Com n, arg, rest]
-        | Just tmod <- Map.lookup n pTime2ppa -> eval_op getTime tmod arg rest
+        | Just tmod <- Map.lookup n pTime_pA_pA -> eval_op getTime tmod arg rest
     -- see Note [Chaining Functions Locally]
     MList xs | Just fromControl <- mpat.fromControl -> (1,) <$> fromControl <$> eval_list (env{currentParam = mpat.localExpr}) xs
     -- a def variable

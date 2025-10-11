@@ -85,8 +85,8 @@ mkMondoParam name get app =
 mkMondoNParam :: String -> (MondoExpr -> Maybe (T.Pattern T.Note)) -> (T.Pattern T.Note -> T.ControlPattern) -> MondoParam T.Note
 mkMondoNParam name get app = (mkMondoParam name get app){rangenOp = Just T.range}
 
-mkMondoDParam :: String -> (MondoExpr -> Maybe (T.Pattern Double)) -> (T.Pattern Double -> T.ControlPattern) -> MondoParam Double
-mkMondoDParam name get app = (mkMondoParam name get app){rangeOp = Just T.range}
+mkMondoDParam :: String -> (T.Pattern Double -> T.ControlPattern) -> MondoParam Double
+mkMondoDParam name app = (mkMondoParam name getDouble app){rangeOp = Just T.range}
 
 -- | Create the simplest pattern, useful for example to parse the notes from 'bd:<1 2>'
 mkMondoPat :: (MondoExpr -> Maybe (T.Pattern a)) -> MondoPat a a
