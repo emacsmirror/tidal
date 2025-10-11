@@ -128,6 +128,12 @@ time_pC_pC =
         , ("_pressBy", T._pressBy)
         ]
 
+pInt_pApA_pA_pA :: Map String (Pattern Int -> (Pattern a -> Pattern a) -> Pattern a -> Pattern a)
+pInt_pApA_pA_pA =
+    Map.fromList
+        [ ("every", T.every)
+        ]
+
 -- sometimes and often are not strictly for control pattern, but it's simpler to restrict them here.
 pCpC_pC_pC :: Map String ((ControlPattern -> ControlPattern) -> ControlPattern -> ControlPattern)
 pCpC_pC_pC =

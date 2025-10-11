@@ -301,6 +301,7 @@ run = describe "tidal-mondo" do
         itEval "s superhammond!12 # n (randrun 6)" $ T.s "superhammond!12" # T.n (fromIntegral <$> T.randrun 6)
         itEval "n (run <4 8>) # s amencutup" $ T.n (T.run "<4 8>") # T.sound "amencutup"
         itEval "n (scan 8) # s amencutup" $ T.n (T.scan 8) # T.sound "amencutup"
+        itEval "n [0 1 [~ 2] 3] # every 3 (fast 2) # s arpy" $ T.every 3 (T.fast 2) $ T.n "0 1 [~ 2] 3" # T.sound "arpy"
 
         -- add/sub tests
         itEval "n [1 2] # add (n 3) # pan 1" $ T.n "[1 2]" |+ T.n "3" # T.pan 1
