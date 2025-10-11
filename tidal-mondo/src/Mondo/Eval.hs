@@ -256,9 +256,11 @@ eval_pat env mpat expr = case expr of
         | Just tmod <- Map.lookup n pTime_pA_pA -> eval_op getTime tmod arg rest
     MList [Com n, arg]
         | Just mk <- mpat.fromNote
-        , Just f <- Map.lookup n pInt_pNum -> do
-            paramPat <- snd <$> eval_pat env (mkMondoPat getInt) arg
-            pure $ (1, mk (f paramPat))
+        , Just f <- Map.lookup n pInt_pNum ->
+            fmap (mk . f) <$> eval_pat env (mkMondoPat getInt) arg
+        | Just mk <- mpat.fromNote
+        , Just f <- Map.lookup n pENR_pENR ->
+            fmap (mk . f) <$> eval_pat env (mkMondoPat getNote) arg
     MList [Com n, MValue (Pos v)]
         | Just mk <- mpat.fromInt
         , Just f <- Map.lookup n int_pInt ->

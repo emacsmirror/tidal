@@ -299,6 +299,7 @@ run = describe "tidal-mondo" do
         itEval "n (rand # segment 12 # range 0 24) # ribbon 23 1" $ T.ribbon 23 1 $ T.n (T.range 0 24 $ T.segment 12 T.rand)
         itEval "n (irand 5) # segment 4" $ T.segment 4 $ T.n (T.irand 5)
         itEval "s superhammond!12 # n (randrun 6)" $ T.s "superhammond!12" # T.n (fromIntegral <$> T.randrun 6)
+        itEval "n (run <4 8>) # s amencutup" $ T.n (T.run "<4 8>") # T.sound "amencutup"
 
         -- add/sub tests
         itEval "n [1 2] # add (n 3) # pan 1" $ T.n "[1 2]" |+ T.n "3" # T.pan 1

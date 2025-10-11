@@ -63,6 +63,12 @@ pFrac =
         , ("perlin", T.perlin)
         ]
 
+pENR_pENR :: (Enum a, Num a, Real a) => Map String (T.Pattern a -> T.Pattern a)
+pENR_pENR =
+    Map.fromList
+        [ ("run", T.run)
+        ]
+
 pFracReal :: (Fractional a, Real a) => Map String (T.Pattern a)
 pFracReal =
     Map.fromList
