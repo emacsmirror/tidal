@@ -80,15 +80,15 @@ eval_list env es = case es of
     Com n : MValue v : rest | Just f <- Map.lookup n time2pps -> f (toRational v.value) <$> eval_list env rest
     Com n : nparam1 : rest@(_ : _) | Just f <- Map.lookup n pTimepTime2ppas -> do
         npat1 <- eval_ppat (mkMondoPat getTime) nparam1
-        eval_mod (MondoMod getTime (f npat1)) rest
+        eval_mod getTime (f npat1) rest
     -- Patterns modifiers like 'fast'
-    Com n : rest@(_ : _) | Just mpat <- Map.lookup n timeMods -> eval_mod mpat rest
-    Com n : rest@(_ : _) | Just mpat <- Map.lookup n boolMods -> eval_mod mpat rest
-    Com n : rest@(_ : _) | Just mpat <- Map.lookup n intMods -> eval_mod mpat rest
-    Com "arp" : rest@(_ : _) -> eval_mod arpPat rest -- arp is the only string modifier
-    Com n : nparam : rest@(_ : _) | Just mkpat <- Map.lookup n pInt2intMods -> do
+    Com n : rest@(_ : _) | Just f <- Map.lookup n pTime2ppa -> eval_mod getTime f rest
+    Com n : rest@(_ : _) | Just f <- Map.lookup n pBool2ppa -> eval_mod getBool f rest
+    Com n : rest@(_ : _) | Just f <- Map.lookup n pInt2ppa -> eval_mod getInt f rest
+    Com "arp" : rest@(_ : _) -> eval_mod getString T.arp rest -- arp is the only string modifier
+    Com n : nparam : rest@(_ : _) | Just f <- Map.lookup n pIntpInt2pps -> do
         npat <- eval_ppat (mkMondoPat getInt) nparam
-        eval_mod (mkpat npat) rest
+        eval_mod getInt (f npat) rest
     Com n : param : MList rest : [] | Just mkMod <- Map.lookup n pp2pps -> do
         f <- eval_fun env param
         restPat <- eval_list env rest
@@ -139,13 +139,13 @@ eval_list env es = case es of
             other -> mkError ("unexpected control: " <> show other) $ exprPos (MList other)
 
     -- Evaluate a modifier pattern like 'fast 2'
-    eval_mod _ [] = error "The impossible has happened!"
-    eval_mod mondoMod (param : rest) = do
-        controlPat <- eval_ppat (mkMondoPat mondoMod.exprToPat) param
+    eval_mod _ _ [] = error "The impossible has happened!"
+    eval_mod get app (param : rest) = do
+        controlPat <- eval_ppat (mkMondoPat get) param
         restPat <- case rest of
             [MList xs] -> eval_list env xs
             _ -> mkError ("expected command, got: " <> show rest) (exprPos (MList rest))
-        pure $ mondoMod.appModifier controlPat restPat
+        pure $ app controlPat restPat
 
 eval_fun :: Env -> MondoExpr -> Either ParseError (T.ControlPattern -> T.ControlPattern)
 eval_fun env expr = case expr of

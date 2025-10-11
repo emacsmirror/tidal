@@ -94,12 +94,6 @@ mkMondoPat exprToPat = MondoPat Nothing exprToPat id Nothing Nothing Nothing Not
 
 type MondoParam a = MondoPat a T.ValueMap
 
--- | A modifier pattern, like for 'fast' or 'slow'.
-data MondoMod a = MondoMod
-    { exprToPat :: MondoExpr -> Maybe (T.Pattern a)
-    , appModifier :: T.Pattern a -> T.ControlPattern -> T.ControlPattern
-    }
-
 getDouble :: MondoExpr -> Maybe (T.Pattern Double)
 getDouble expr = case expr of
     MValue v -> Just . patWithPos $ float2Double <$> v

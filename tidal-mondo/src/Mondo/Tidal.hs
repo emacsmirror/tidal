@@ -49,9 +49,6 @@ sParams = Map.fromList $ map (\(n, f) -> (n, mkMondoParam n getString f)) funcs
 
 -- * Modifier Patterns
 
-arpPat :: MondoMod String
-arpPat = MondoMod getString T.arp
-
 ppas :: Map String (T.Pattern a -> T.Pattern a)
 ppas =
     Map.fromList
@@ -128,23 +125,18 @@ pTime2ppa =
         , ("pressBy", T.pressBy)
         ]
 
-timeMods :: Map String (MondoMod T.Time)
-timeMods = MondoMod getTime <$> pTime2ppa
-
-boolMods :: Map String (MondoMod Bool)
-boolMods = Map.fromList $ map (\(n, f) -> (n, MondoMod getBool f)) funcs
-  where
-    funcs =
+pBool2ppa :: Map String (T.Pattern Bool -> T.Pattern a -> T.Pattern a)
+pBool2ppa =
+    Map.fromList
         [ ("reset", T.reset)
         , ("restart", T.restart)
         , ("struct", T.struct)
         , ("mask", T.mask)
         ]
 
-intMods :: Map String (MondoMod Int)
-intMods = Map.fromList $ map (\(n, f) -> (n, MondoMod getInt f)) funcs
-  where
-    funcs =
+pInt2ppa :: Map String (T.Pattern Int -> T.Pattern a -> T.Pattern a)
+pInt2ppa =
+    Map.fromList
         [ ("repeatCycles", T.repeatCycles)
         , ("iter", T.iter)
         , ("iter'", T.iter')
@@ -155,10 +147,9 @@ intMods = Map.fromList $ map (\(n, f) -> (n, MondoMod getInt f)) funcs
         , ("scramble", T.scramble)
         ]
 
-pInt2intMods :: Map String (T.Pattern Int -> MondoMod Int)
-pInt2intMods = Map.fromList $ map (\(n, f) -> (n, \p -> MondoMod getInt (f p))) funcs
-  where
-    funcs =
+pIntpInt2pps :: Map String (T.Pattern Int -> T.Pattern Int -> T.ControlPattern -> T.ControlPattern)
+pIntpInt2pps =
+    Map.fromList
         [ ("splice", T.splice)
         , ("euclid", T.euclid)
         , ("euclidInv", T.euclidInv)
