@@ -259,6 +259,10 @@ eval_pat env mpat expr = case expr of
         , Just f <- Map.lookup n pInt_pNum -> do
             paramPat <- snd <$> eval_pat env (mkMondoPat getInt) arg
             pure $ (1, mk (f paramPat))
+    MList [Com n, MValue (Pos v)]
+        | Just mk <- mpat.fromInt
+        , Just f <- Map.lookup n int_pInt ->
+            pure $ (1, mk (f $ round v))
     -- see Note [Chaining Functions Locally]
     MList xs | Just fromControl <- mpat.fromControl -> (1,) <$> fromControl <$> eval_list (env{currentParam = mpat.localExpr}) xs
     -- a def variable

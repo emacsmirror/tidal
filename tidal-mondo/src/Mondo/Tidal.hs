@@ -41,6 +41,12 @@ pStr_pC =
         , ("s", T.s)
         ]
 
+int_pInt :: Map String (Int -> T.Pattern Int)
+int_pInt =
+    Map.fromList
+        [ ("randrun", T.randrun)
+        ]
+
 pInt_pNum :: (Num a) => Map String (T.Pattern Int -> T.Pattern a)
 pInt_pNum =
     Map.fromList

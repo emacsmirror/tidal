@@ -298,12 +298,14 @@ run = describe "tidal-mondo" do
         itEval "s bd # ghost" $ T.ghost $ T.s "bd"
         itEval "n (rand # segment 12 # range 0 24) # ribbon 23 1" $ T.ribbon 23 1 $ T.n (T.range 0 24 $ T.segment 12 T.rand)
         itEval "n (irand 5) # segment 4" $ T.segment 4 $ T.n (T.irand 5)
+        itEval "s superhammond!12 # n (randrun 6)" $ T.s "superhammond!12" # T.n (fromIntegral <$> T.randrun 6)
 
         -- add/sub tests
         itEval "n [1 2] # add (n 3) # pan 1" $ T.n "[1 2]" |+ T.n "3" # T.pan 1
         itEval "n 0..12 # sub (n <0 5>) # lpf 1" $ T.n "0..12" |- T.n "<0 5>" # T.cutoff 1
 
         -- timing tests
+        itEval "s superhammond!12 # n 12" $ T.s "superhammond!12" # T.n 12
         itEval "s [bd ~]" $ T.sound "bd ~"
         itEval "s [bd!2 sd]" $ T.sound "[bd!2 sd]"
         itEval "s [bd@2 sd]" $ T.sound "[bd@2 sd]"
