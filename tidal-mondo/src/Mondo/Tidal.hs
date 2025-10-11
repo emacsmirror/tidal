@@ -41,6 +41,12 @@ pStr_pC =
         , ("s", T.s)
         ]
 
+pInt_pNum :: (Num a) => Map String (T.Pattern Int -> T.Pattern a)
+pInt_pNum =
+    Map.fromList
+        [ ("irand", T.irand)
+        ]
+
 pFrac :: (Fractional a) => Map String (T.Pattern a)
 pFrac =
     Map.fromList
