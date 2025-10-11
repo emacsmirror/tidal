@@ -78,6 +78,9 @@ eval_list env es = case es of
     Com n : MList rest : [] | Just f <- Map.lookup n ppas -> f <$> eval_list env rest
     Com n : MList rest : [] | Just f <- Map.lookup n pps -> f <$> eval_list env rest
     Com n : MValue v : rest | Just f <- Map.lookup n time2pps -> f (toRational v.value) <$> eval_list env rest
+    Com n : nparam1 : rest@(_ : _) | Just f <- Map.lookup n pTimepTime2ppas -> do
+        npat1 <- eval_ppat (mkMondoPat getTime) nparam1
+        eval_mod (MondoMod getTime (f npat1)) rest
     -- Patterns modifiers like 'fast'
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n timeMods -> eval_mod mpat rest
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n boolMods -> eval_mod mpat rest

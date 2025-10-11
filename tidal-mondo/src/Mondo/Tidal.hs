@@ -78,6 +78,12 @@ ppas =
         , ("press", T.press)
         ]
 
+pTimepTime2ppas :: Map String (T.Pattern T.Time -> T.Pattern T.Time -> T.ControlPattern -> T.ControlPattern)
+pTimepTime2ppas =
+    Map.fromList
+        [ ("ribbon", T.ribbon)
+        ]
+
 pps :: Map String (T.ControlPattern -> T.ControlPattern)
 pps =
     Map.fromList
