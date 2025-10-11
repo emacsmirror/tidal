@@ -314,6 +314,7 @@ run = describe "tidal-mondo" do
         itEval "s bd&<3:8 11:16>" $ T.sound "<bd(3,8) bd(11,16)>"
         itEval "s bd?" $ T.sound "bd?"
         itEval "s [bd? sd?2]" $ T.fastcat [T.sound "bd?", T.degradeBy 2 (T.sound "sd")]
+        itEval "s (bd # fast 4)" $ T.sound (T.fast 4 "bd")
 
         -- full tests
         itEval "s hh*8 # pan (sine # slow <3 1>)" $ T.sound "hh*8" # T.pan (T.slow "<3 1>" T.sine)
