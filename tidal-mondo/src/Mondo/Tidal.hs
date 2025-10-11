@@ -78,6 +78,19 @@ pMods =
         , ("press", T.press)
         ]
 
+pCMods :: Map String (T.ControlPattern -> T.ControlPattern)
+pCMods =
+    Map.fromList
+        [ ("ghost", T.ghost)
+        ]
+
+time2Mods :: Map String (T.Time -> T.ControlPattern -> T.ControlPattern)
+time2Mods =
+    Map.fromList
+        [ ("ghost'", T.ghost')
+        , ("_pressBy", T._pressBy)
+        ]
+
 -- sometimes and often are not strictly for control pattern, but it's simpler to restrict them here.
 ppMods :: Map String ((T.ControlPattern -> T.ControlPattern) -> T.ControlPattern -> T.ControlPattern)
 ppMods =

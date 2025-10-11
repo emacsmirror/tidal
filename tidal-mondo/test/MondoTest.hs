@@ -295,6 +295,7 @@ run = describe "tidal-mondo" do
         itEval "s [bd*2 sn] # euclid 3 8" do
             T.euclid 3 8 $ T.sound "bd*2 sn"
         itEval "pN n c2" $ T.pN "n" "c2"
+        itEval "s bd # ghost" $ T.ghost $ T.s "bd"
 
         -- add/sub tests
         itEval "n [1 2] # add (n 3) # pan 1" $ T.n "[1 2]" |+ T.n "3" # T.pan 1

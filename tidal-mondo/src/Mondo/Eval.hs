@@ -76,6 +76,8 @@ eval_list env es = case es of
     Com "pB" : Com name : rest@(_ : _) -> eval_control (mkMondoParam name getBool (T.pB name)) rest
     -- Direct modifiers like 'rev'
     Com n : MList rest : [] | Just f <- Map.lookup n pMods -> f <$> eval_list env rest
+    Com n : MList rest : [] | Just f <- Map.lookup n pCMods -> f <$> eval_list env rest
+    Com n : MValue v : rest | Just f <- Map.lookup n time2Mods -> f (toRational v.value) <$> eval_list env rest
     -- Patterns modifiers like 'fast'
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n timeMods -> eval_mod mpat rest
     Com n : rest@(_ : _) | Just mpat <- Map.lookup n boolMods -> eval_mod mpat rest
@@ -150,6 +152,7 @@ eval_fun env expr = case expr of
         eval_compo (pf f) rest
     MCommand "_" -> pure id
     Com n | Just f <- Map.lookup n pMods -> pure f
+    Com n | Just f <- Map.lookup n pCMods -> pure f
     MList xs -> case eval_list env xs of
         Left _ -> mkError ("arg is not fun: " <> show expr) (exprPos expr)
         Right p -> pure (# p)
