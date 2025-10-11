@@ -203,6 +203,13 @@ eval_pat env mpat expr = case expr of
             yPat <- snd <$> eval_pat env rpat y
             (l, pPat) <- eval_pat env rpat p
             pure (l, mpat.patToControl $ rangeOp xPat yPat pPat)
+    MList [Com "range", x, y, p]
+        | Just rangeOp <- mpat.rangenOp -> do
+            let rpat = mkMondoPat getNote
+            xPat <- snd <$> eval_pat env rpat x
+            yPat <- snd <$> eval_pat env rpat y
+            (l, pPat) <- eval_pat env rpat p
+            pure (l, mpat.patToControl $ rangeOp xPat yPat pPat)
     -- x..y
     MList [MCommand "..", y, x] -> do
         let rpat = mkMondoPat mpat.exprToPat

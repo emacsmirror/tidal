@@ -17,7 +17,7 @@ import Mondo.Parser
 -- * Control Patterns
 
 nPat :: MondoParam T.Note
-nPat = mkMondoParam "n" getNote T.n
+nPat = mkMondoNParam "n" getNote T.n
 
 mkScalePat :: (T.Pattern Int -> T.ControlPattern) -> MondoParam Int
 mkScalePat scale = mkMondoParam "scale" getInt scale
@@ -25,7 +25,7 @@ mkScalePat scale = mkMondoParam "scale" getInt scale
 -- * Grp Patterns
 
 nColonPat :: MondoParam Double
-nColonPat = MondoPat Nothing getDouble (T.pF "n") Nothing Nothing Nothing Nothing
+nColonPat = MondoPat Nothing getDouble (T.pF "n") Nothing Nothing Nothing Nothing Nothing
 
 colonSoundPat :: MondoParam Double
 colonSoundPat = (mkMondoParam "" getDouble (T.pF "n")){localExpr = Just $ MCommand "n-colon-pat"}

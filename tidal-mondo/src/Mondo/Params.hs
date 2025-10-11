@@ -45,6 +45,7 @@ data MondoPat a b = MondoPat
     , andOp :: Maybe (T.Pattern Int -> T.Pattern Int -> T.Pattern b)
     -- ^ How to handle the '&' operator.
     , rangeOp :: Maybe (T.Pattern Double -> T.Pattern Double -> T.Pattern Double -> T.Pattern a)
+    , rangenOp :: Maybe (T.Pattern T.Note -> T.Pattern T.Note -> T.Pattern T.Note -> T.Pattern a)
     -- ^ How to handle the range operator.
     , fromControl :: Maybe (T.ControlPattern -> T.Pattern b)
     -- ^ How to evaluated nested expression, see Note [Chaining Functions Locally]
@@ -77,15 +78,19 @@ mkMondoParam name get app =
         , colonOp = Just (T.|+|)
         , andOp = Nothing
         , rangeOp = Nothing
+        , rangenOp = Nothing
         , fromControl = Just id
         }
+
+mkMondoNParam :: String -> (MondoExpr -> Maybe (T.Pattern T.Note)) -> (T.Pattern T.Note -> T.ControlPattern) -> MondoParam T.Note
+mkMondoNParam name get app = (mkMondoParam name get app){rangenOp = Just T.range}
 
 mkMondoDParam :: String -> (MondoExpr -> Maybe (T.Pattern Double)) -> (T.Pattern Double -> T.ControlPattern) -> MondoParam Double
 mkMondoDParam name get app = (mkMondoParam name get app){rangeOp = Just T.range}
 
 -- | Create the simplest pattern, useful for example to parse the notes from 'bd:<1 2>'
 mkMondoPat :: (MondoExpr -> Maybe (T.Pattern a)) -> MondoPat a a
-mkMondoPat exprToPat = MondoPat Nothing exprToPat id Nothing Nothing Nothing Nothing
+mkMondoPat exprToPat = MondoPat Nothing exprToPat id Nothing Nothing Nothing Nothing Nothing
 
 type MondoParam a = MondoPat a T.ValueMap
 
