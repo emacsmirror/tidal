@@ -120,17 +120,17 @@ eval_list env es = case es of
         case rest of
             [MList xs] -> do
                 restPat <- eval_list env xs
-                pure $ mondoPat.combiner restPat paramPat
+                pure $ restPat # paramPat
             [] -> pure paramPat
             -- Lambda variable can be ignored?!
             [MCommand "_"] -> pure paramPat
             -- Here we don't know what's the command, see Note [Chaining Functions Locally]
             [v@(MPlain _)] | Just currentParam <- env.currentParam -> do
                 restPat <- eval_list env [currentParam, v]
-                pure $ mondoPat.combiner paramPat restPat
+                pure $ restPat # paramPat
             [v@(MValue _)] | Just currentParam <- env.currentParam -> do
                 restPat <- eval_list env [currentParam, v]
-                pure $ mondoPat.combiner paramPat restPat
+                pure $ restPat # paramPat
             other -> mkError ("unexpected control: " <> show other) $ exprPos (MList other)
 
     -- Evaluate a modifier pattern like 'fast 2'

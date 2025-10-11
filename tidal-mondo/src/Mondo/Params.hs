@@ -42,8 +42,7 @@ data MondoPat a b = MondoPat
     , andOp :: Maybe (T.Pattern Int -> T.Pattern Int -> T.Pattern b)
     -- ^ How to handle the '&' operator.
     , rangeOp :: Maybe (T.Pattern Double -> T.Pattern Double -> T.Pattern Double -> T.Pattern a)
-    , combiner :: T.ControlPattern -> T.ControlPattern -> T.ControlPattern
-    -- ^ How to combine the resulting pattern with the remaining pipes.
+    -- ^ How to handle the range operator.
     , fromControl :: Maybe (T.ControlPattern -> T.Pattern b)
     -- ^ How to evaluated nested expression, see Note [Chaining Functions Locally]
     }
@@ -75,7 +74,6 @@ mkMondoParam name get app =
         , colonOp = Just (T.|+|)
         , andOp = Nothing
         , rangeOp = Nothing
-        , combiner = (T.#)
         , fromControl = Just id
         }
 
@@ -84,7 +82,7 @@ mkMondoDParam name get app = (mkMondoParam name get app){rangeOp = Just T.range}
 
 -- | Create the simplest pattern, useful for example to parse the notes from 'bd:<1 2>'
 mkMondoPat :: (MondoExpr -> Maybe (T.Pattern a)) -> MondoPat a a
-mkMondoPat exprToPat = MondoPat Nothing exprToPat id Nothing Nothing Nothing const Nothing
+mkMondoPat exprToPat = MondoPat Nothing exprToPat id Nothing Nothing Nothing Nothing
 
 type MondoParam a = MondoPat a T.ValueMap
 

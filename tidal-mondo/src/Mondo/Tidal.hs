@@ -5,7 +5,6 @@ module Mondo.Tidal where
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Sound.Tidal.Control qualified as T
-import Sound.Tidal.Core ((|+|))
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
 import Sound.Tidal.Pattern qualified as T
@@ -18,15 +17,15 @@ import Mondo.Parser
 -- * Control Patterns
 
 nPat :: MondoParam T.Note
-nPat = (mkMondoParam "n" getNote T.n){combiner = (|+|)}
+nPat = mkMondoParam "n" getNote T.n
 
 mkScalePat :: (T.Pattern Int -> T.ControlPattern) -> MondoParam Int
-mkScalePat scale = (mkMondoParam "scale" getInt scale){combiner = (|+|)}
+mkScalePat scale = mkMondoParam "scale" getInt scale
 
 -- * Grp Patterns
 
 nColonPat :: MondoParam Double
-nColonPat = MondoPat Nothing getDouble (T.pF "n") Nothing Nothing Nothing const Nothing
+nColonPat = MondoPat Nothing getDouble (T.pF "n") Nothing Nothing Nothing Nothing
 
 colonSoundPat :: MondoParam Double
 colonSoundPat = (mkMondoParam "" getDouble (T.pF "n")){localExpr = Just $ MCommand "n-colon-pat"}
