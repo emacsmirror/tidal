@@ -2,10 +2,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoFieldSelectors #-}
 
 module Mondo.Params where
 
+import Data.Map.Strict (Map)
+import Data.Map.Strict qualified as Map
 import GHC.Float (float2Double)
 import Text.Parsec qualified as P
 
@@ -95,17 +98,22 @@ data MondoMod a = MondoMod
 getDouble :: MondoExpr -> Maybe (T.Pattern Double)
 getDouble expr = case expr of
     MValue v -> Just . patWithPos $ float2Double <$> v
-    MPlain (Positioned "sine" _ _ _) -> Just $ T.sine
+    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n fPat -> Just $ p
+    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n frPat -> Just $ p
     _ -> Nothing
 
 getTime :: MondoExpr -> Maybe (T.Pattern T.Time)
 getTime expr = case expr of
     MValue v -> Just . patWithPos $ toRational <$> v
+    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n fPat -> Just $ toRational @Double <$> p
+    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n frPat -> Just $ toRational @Double <$> p
     _ -> Nothing
 
 getInt :: MondoExpr -> Maybe (T.Pattern Int)
 getInt expr = case expr of
     MValue v -> Just . patWithPos $ round <$> v
+    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n fPat -> Just $ round @Double <$> p
+    MPlain (Positioned n _ _ _) | Just p <- Map.lookup n frPat -> Just $ round @Double <$> p
     _ -> Nothing
 
 getBool :: MondoExpr -> Maybe (T.Pattern Bool)
@@ -131,3 +139,18 @@ patWithPos v = T.withContext (addPos v) $ pure v.value
 
 addPos :: Positioned a -> T.Context -> T.Context
 addPos vp c = c{T.contextPosition = [((vp.col, vp.row), (vp.col + vp.len, vp.row))]}
+
+fPat :: (Fractional a) => Map String (T.Pattern a)
+fPat =
+    Map.fromList
+        [ ("sine", T.sine)
+        , ("square", T.square)
+        , ("cosine", T.cosine)
+        ]
+
+frPat :: (Fractional a, Real a) => Map String (T.Pattern a)
+frPat =
+    Map.fromList
+        [ ("saw", T.saw)
+        , ("tri", T.tri)
+        ]
