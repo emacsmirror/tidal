@@ -21,11 +21,12 @@ import Data.Map.Strict qualified as Map
 import Sound.Tidal.Control qualified as T
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
+import Sound.Tidal.Pattern (ControlPattern, Pattern)
 import Sound.Tidal.Pattern qualified as T
 import Sound.Tidal.Stepwise qualified as T
 import Sound.Tidal.UI qualified as T
 
-pStr_pC :: Map String (T.Pattern String -> T.ControlPattern)
+pStr_pC :: Map String (Pattern String -> ControlPattern)
 pStr_pC =
     Map.fromList
         [ ("sound", T.sound)
@@ -41,25 +42,25 @@ pStr_pC =
         , ("s", T.s)
         ]
 
-int_pInt :: Map String (Int -> T.Pattern Int)
+int_pInt :: Map String (Int -> Pattern Int)
 int_pInt =
     Map.fromList
         [ ("randrun", T.randrun)
         ]
 
-pInt_pNum :: (Num a) => Map String (T.Pattern Int -> T.Pattern a)
+pInt_pNum :: (Num a) => Map String (Pattern Int -> Pattern a)
 pInt_pNum =
     Map.fromList
         [ ("irand", T.irand)
         ]
 
-pENum_pENum :: (Enum a, Num a) => Map String (T.Pattern a -> T.Pattern a)
+pENum_pENum :: (Enum a, Num a) => Map String (Pattern a -> Pattern a)
 pENum_pENum =
     Map.fromList
         [ ("scan", T.scan)
         ]
 
-pFrac :: (Fractional a) => Map String (T.Pattern a)
+pFrac :: (Fractional a) => Map String (Pattern a)
 pFrac =
     Map.fromList
         [ ("sine", T.sine)
@@ -69,20 +70,20 @@ pFrac =
         , ("perlin", T.perlin)
         ]
 
-pENR_pENR :: (Enum a, Num a, Real a) => Map String (T.Pattern a -> T.Pattern a)
+pENR_pENR :: (Enum a, Num a, Real a) => Map String (Pattern a -> Pattern a)
 pENR_pENR =
     Map.fromList
         [ ("run", T.run)
         ]
 
-pFracReal :: (Fractional a, Real a) => Map String (T.Pattern a)
+pFracReal :: (Fractional a, Real a) => Map String (Pattern a)
 pFracReal =
     Map.fromList
         [ ("saw", T.saw)
         , ("tri", T.tri)
         ]
 
-pA_pA :: Map String (T.Pattern a -> T.Pattern a)
+pA_pA :: Map String (Pattern a -> Pattern a)
 pA_pA =
     Map.fromList
         [ ("trigger", T.trigger)
@@ -108,19 +109,19 @@ pA_pA =
         , ("press", T.press)
         ]
 
-pTime_pTime_pC_pC :: Map String (T.Pattern T.Time -> T.Pattern T.Time -> T.ControlPattern -> T.ControlPattern)
+pTime_pTime_pC_pC :: Map String (Pattern T.Time -> Pattern T.Time -> ControlPattern -> ControlPattern)
 pTime_pTime_pC_pC =
     Map.fromList
         [ ("ribbon", T.ribbon)
         ]
 
-pC_pC :: Map String (T.ControlPattern -> T.ControlPattern)
+pC_pC :: Map String (ControlPattern -> ControlPattern)
 pC_pC =
     Map.fromList
         [ ("ghost", T.ghost)
         ]
 
-time_pC_pC :: Map String (T.Time -> T.ControlPattern -> T.ControlPattern)
+time_pC_pC :: Map String (T.Time -> ControlPattern -> ControlPattern)
 time_pC_pC =
     Map.fromList
         [ ("ghost'", T.ghost')
@@ -128,7 +129,7 @@ time_pC_pC =
         ]
 
 -- sometimes and often are not strictly for control pattern, but it's simpler to restrict them here.
-pCpC_pC_pC :: Map String ((T.ControlPattern -> T.ControlPattern) -> T.ControlPattern -> T.ControlPattern)
+pCpC_pC_pC :: Map String ((ControlPattern -> ControlPattern) -> ControlPattern -> ControlPattern)
 pCpC_pC_pC =
     Map.fromList
         [ ("sometimes", T.sometimes)
@@ -136,7 +137,7 @@ pCpC_pC_pC =
         , ("jux", T.jux)
         ]
 
-pTime_pA_pA :: Map String (T.Pattern T.Time -> T.Pattern a -> T.Pattern a)
+pTime_pA_pA :: Map String (Pattern T.Time -> Pattern a -> Pattern a)
 pTime_pA_pA =
     Map.fromList
         [ ("slowSqueeze", T.slowSqueeze)
@@ -158,7 +159,7 @@ pTime_pA_pA =
         , ("pressBy", T.pressBy)
         ]
 
-pBool_pA_pA :: Map String (T.Pattern Bool -> T.Pattern a -> T.Pattern a)
+pBool_pA_pA :: Map String (Pattern Bool -> Pattern a -> Pattern a)
 pBool_pA_pA =
     Map.fromList
         [ ("reset", T.reset)
@@ -167,7 +168,7 @@ pBool_pA_pA =
         , ("mask", T.mask)
         ]
 
-pInt_pA_pA :: Map String (T.Pattern Int -> T.Pattern a -> T.Pattern a)
+pInt_pA_pA :: Map String (Pattern Int -> Pattern a -> Pattern a)
 pInt_pA_pA =
     Map.fromList
         [ ("repeatCycles", T.repeatCycles)
@@ -180,7 +181,7 @@ pInt_pA_pA =
         , ("scramble", T.scramble)
         ]
 
-pInt_pInt_pC_pC :: Map String (T.Pattern Int -> T.Pattern Int -> T.ControlPattern -> T.ControlPattern)
+pInt_pInt_pC_pC :: Map String (Pattern Int -> Pattern Int -> ControlPattern -> ControlPattern)
 pInt_pInt_pC_pC =
     Map.fromList
         [ ("splice", T.splice)
@@ -191,7 +192,7 @@ pInt_pInt_pC_pC =
         ]
 
 -- render list with: `grep -r tidal-core ":: Pattern Double -> ControlPattern" | sed 's/.*.hs:\([^ ]+\).*/  , ("\1", T.\1)/'`
-pDouble_pC :: Map String (T.Pattern Double -> T.ControlPattern)
+pDouble_pC :: Map String (Pattern Double -> ControlPattern)
 pDouble_pC =
     Map.fromList
         [ ("accelerate", T.accelerate)
@@ -407,7 +408,7 @@ pDouble_pC =
         ]
 
 -- render list with: `grep -r tidal-core ":: Pattern Int -> ControlPattern$" | grep -v "recv" | sed 's/.*.hs:\([^ ]*\).*/  , ("\1", T.\1)/'`
-pInt_pC :: Map String (T.Pattern Int -> T.ControlPattern)
+pInt_pC :: Map String (Pattern Int -> ControlPattern)
 pInt_pC =
     Map.fromList
         [ ("nrpnn", T.nrpnn)
