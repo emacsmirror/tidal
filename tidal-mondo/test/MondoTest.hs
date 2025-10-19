@@ -325,6 +325,7 @@ run = describe "tidal-mondo" do
         itEval "s (bd # fast 4)" $ T.sound (T.fast 4 "bd")
 
         -- full tests
+        itEval "n c2 # off 0.125 (add (n 7))" $ T.off 0.125 (|+ T.n 7) $ T.n "c2"
         itEval "s hh*8 # pan (sine # slow <3 1>)" $ T.sound "hh*8" # T.pan (T.slow "<3 1>" T.sine)
         itEval "s sine*4 # dec(sine # slow 4 # range 0 2)" $ T.sound "sine*4" # T.decay (T.slow 4 $ T.range 0 2 T.sine)
         itEval "s [bd hh sn cp] # iter 4" $ T.iter 4 $ T.sound "bd hh sn cp"

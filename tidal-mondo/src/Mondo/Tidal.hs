@@ -21,7 +21,7 @@ import Data.Map.Strict qualified as Map
 import Sound.Tidal.Control qualified as T
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
-import Sound.Tidal.Pattern (ControlPattern, Pattern)
+import Sound.Tidal.Pattern (ControlPattern, Pattern, Time)
 import Sound.Tidal.Pattern qualified as T
 import Sound.Tidal.Stepwise qualified as T
 import Sound.Tidal.UI qualified as T
@@ -126,6 +126,12 @@ time_pC_pC =
     Map.fromList
         [ ("ghost'", T.ghost')
         , ("_pressBy", T._pressBy)
+        ]
+
+pTime_pApA_pA_pA :: Map String (Pattern Time -> (Pattern a -> Pattern a) -> Pattern a -> Pattern a)
+pTime_pApA_pA_pA =
+    Map.fromList
+        [ ("off", T.off)
         ]
 
 pInt_pApA_pA_pA :: Map String (Pattern Int -> (Pattern a -> Pattern a) -> Pattern a -> Pattern a)

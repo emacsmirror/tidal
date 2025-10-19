@@ -106,6 +106,10 @@ eval_list env es = case es of
             npat <- eval_ppat (mkMondoPat getInt) param1
             fa <- eval_fun env param2
             f npat fa <$> eval_list env rest
+        | Just f <- Map.lookup n pTime_pApA_pA_pA -> do
+            npat <- eval_ppat (mkMondoPat getTime) param1
+            fa <- eval_fun env param2
+            f npat fa <$> eval_list env rest
     -- scale is custom in mondo so that it can be used after the notes like 'n 0 # scale minor'
     Com "scale" : param : MList rest : [] -> eval_scale param rest
     -- n-colon-pat is injected by the eval_pat, when evaluating expression like 'bd:<(1 # lpf 42)>'
@@ -161,6 +165,9 @@ eval_list env es = case es of
 eval_fun :: Env -> MondoExpr -> Either ParseError (T.ControlPattern -> T.ControlPattern)
 eval_fun env expr = case expr of
     MList [MLam _ body] -> eval_fun env body
+    MList (Com "add" : MList rest : []) -> do
+        p <- eval_list env rest
+        pure (|+ p)
     MList (Com n : x : rest)
         | Just pf <- Map.lookup n pCpC_pC_pC -> do
             f <- eval_fun env x
