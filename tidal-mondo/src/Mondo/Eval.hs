@@ -39,6 +39,7 @@ eval es = case es of
     go defs acc [] = (defs, reverse acc)
     go defs acc (x : xs) = case x of
         MList [Com "def", Com k, v] -> go ((k, v) : defs) acc xs
+        MList (Com "_" : _) -> go defs acc xs
         _ -> go defs (x : acc) xs
 
 eval_top :: Env -> MondoExpr -> Either ParseError T.ControlPattern

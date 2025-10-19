@@ -323,6 +323,7 @@ run = describe "tidal-mondo" do
         itEval "s bd?" $ T.sound "bd?"
         itEval "s [bd? sd?2]" $ T.fastcat [T.sound "bd?", T.degradeBy 2 (T.sound "sd")]
         itEval "s (bd # fast 4)" $ T.sound (T.fast 4 "bd")
+        itEval "$ s bd $_ s sd" $ T.sound "bd"
 
         -- full tests
         itEval "n c2 # off 0.125 (add (n 7))" $ T.off 0.125 (|+ T.n 7) $ T.n "c2"
