@@ -125,7 +125,7 @@ eval_list env es = case es of
     x : _ -> mkError ("unexpected command: " <> show es) (exprPos x)
     [] -> mkError "expected command!" (P.newPos "input" 1 1)
   where
-    eval_ppat mpat expr = snd <$> eval_pat env mpat expr
+    eval_ppat mpat expr = snd <$> eval_pat False env mpat expr
 
     eval_notes param = case env.envScale of
         -- No scale defined, eval notes from pattern
@@ -135,7 +135,7 @@ eval_list env es = case es of
 
     eval_scale param rest = do
         scalePat <- eval_ppat (mkMondoPat getString) param
-        case eval_pat env (mkMondoPat getInt) (MList rest) of
+        case eval_pat False env (mkMondoPat getInt) (MList rest) of
             -- rest are notes, apply the scale and make a control param
             Right (_, notePat) -> pure $ T.scale scalePat notePat
             -- rest is probably a pipe, add the scale to the env, and apply it later when encountering notes.
@@ -179,7 +179,7 @@ eval_fun env expr = case expr of
             f <- eval_fun env x
             eval_compo (pf f) rest
         | Just pf <- Map.lookup n pTime_pA_pA -> do
-            a <- snd <$> eval_pat env (mkMondoPat getTime) x
+            a <- snd <$> eval_pat False env (mkMondoPat getTime) x
             eval_compo (pf a) rest
     MCommand "_" -> pure id
     Com n
@@ -198,8 +198,8 @@ eval_fun env expr = case expr of
         _ -> mkError ("unexpected fun: " <> show rest) (exprPos (MList rest))
 
 -- Evaluate a 'MondoExpr', according to a 'MondoPat', into a tidal pattern.
-eval_pat :: (T.Parseable a, T.Enumerable a) => Env -> MondoPat a b -> MondoExpr -> Either ParseError (Rational, T.Pattern b)
-eval_pat env mpat expr = case expr of
+eval_pat :: (T.Parseable a, T.Enumerable a) => Bool -> Env -> MondoPat a b -> MondoExpr -> Either ParseError (Rational, T.Pattern b)
+eval_pat highlight env mpat expr = case expr of
     -- Use tidal mini notation
     MString p -> case T.parseBP p.value of
         Left err ->
@@ -209,69 +209,69 @@ eval_pat env mpat expr = case expr of
         Right pat -> pure (1, T.withContext (addPos p) (mpat.patToControl pat))
     -- < >
     MList (MCommand "angle" : xs) ->
-        (1,) <$> T.slow (pure $ toRational $ length xs) . T.timecat <$> traverse (eval_pat env mpat) xs
+        (1,) <$> T.slow (pure $ toRational $ length xs) . T.timecat <$> traverse (eval_pat True env mpat) xs
     -- [ ]
-    MList (MCommand "square" : xs) -> (1,) <$> T.timecat <$> traverse (eval_pat env mpat) xs
+    MList (MCommand "square" : xs) -> (1,) <$> T.timecat <$> traverse (eval_pat True env mpat) xs
     -- x?
-    MList [MCommand "?", x] -> fmap (T.degradeBy 0.5) <$> eval_pat env mpat x
+    MList [MCommand "?", x] -> fmap (T.degradeBy 0.5) <$> eval_ppat mpat x
     -- x?y
     MList [MCommand "?", x, y] -> do
-        yPat <- snd <$> eval_pat env (mkMondoPat getDouble) y
-        fmap (T.degradeBy yPat) <$> eval_pat env mpat x
+        yPat <- snd <$> eval_ppat (mkMondoPat getDouble) y
+        fmap (T.degradeBy yPat) <$> eval_ppat mpat x
     -- x*y
     MList [MCommand "*", param, val] -> eval_op getTime T.fast param val
     -- x/y
-    MList [MCommand "/", MValue x, MValue y] -> eval_pat env mpat $ MValue $ Positioned (y.value / x.value) x.col x.row (y.col - x.col + y.len)
+    MList [MCommand "/", MValue x, MValue y] -> eval_ppat mpat $ MValue $ Positioned (y.value / x.value) x.col x.row (y.col - x.col + y.len)
     MList [MCommand "/", param, val] -> eval_op getTime T.slow param val
     -- range x y p
     MList [Com "range", x, y, p]
         | Just rangeOp <- mpat.rangeOp -> do
             let rpat = mkMondoPat getDouble
-            xPat <- snd <$> eval_pat env rpat x
-            yPat <- snd <$> eval_pat env rpat y
-            (l, pPat) <- eval_pat env rpat p
+            xPat <- snd <$> eval_ppat rpat x
+            yPat <- snd <$> eval_ppat rpat y
+            (l, pPat) <- eval_ppat rpat p
             pure (l, mpat.patToControl $ rangeOp xPat yPat pPat)
     MList [Com "range", x, y, p]
         | Just rangeOp <- mpat.rangenOp -> do
             let rpat = mkMondoPat getNote
-            xPat <- snd <$> eval_pat env rpat x
-            yPat <- snd <$> eval_pat env rpat y
-            (l, pPat) <- eval_pat env rpat p
+            xPat <- snd <$> eval_ppat rpat x
+            yPat <- snd <$> eval_ppat rpat y
+            (l, pPat) <- eval_ppat rpat p
             pure (l, mpat.patToControl $ rangeOp xPat yPat pPat)
     -- x..y
     MList [MCommand "..", y, x] -> do
         let rpat = mkMondoPat mpat.exprToPat
-        xPat <- snd <$> eval_pat env rpat x
-        yPat <- snd <$> eval_pat env rpat y
+        xPat <- snd <$> eval_ppat rpat x
+        yPat <- snd <$> eval_ppat rpat y
         pure (1, mpat.patToControl $ T.unwrap $ T.fromTo <$> xPat <*> yPat)
     -- x:y
     MList [MCommand ":", note, sound]
         | Just (Com "s") <- mpat.localExpr
         , Just colonOp <- mpat.colonOp -> do
             let colonSoundPat = (mkMondoParam "" getDouble (T.pF "n")){localExpr = Just $ MCommand "n-colon-pat"}
-            (l, soundPat) <- eval_pat env mpat sound
-            notePat <- snd <$> eval_pat env colonSoundPat note
+            (l, soundPat) <- eval_ppat mpat sound
+            notePat <- snd <$> eval_ppat colonSoundPat note
             pure (l, colonOp soundPat notePat)
     MList [MCommand ":", z, y]
         | Just (MCommand "&") <- mpat.localExpr
         , Just andOp <- mpat.andOp -> do
-            yPat <- snd <$> eval_pat env (mkMondoPat getInt) y
-            zPat <- snd <$> eval_pat env (mkMondoPat getInt) z
+            yPat <- snd <$> eval_ppat (mkMondoPat getInt) y
+            zPat <- snd <$> eval_ppat (mkMondoPat getInt) z
             pure (1, andOp yPat zPat)
     -- x!y
     MList [MCommand "!", MValue (Pos y), x] -> do
-        (fromInteger $ round y,) <$> T.timecat <$> replicateM (round y) (eval_pat env mpat x)
+        (fromInteger $ round y,) <$> T.timecat <$> replicateM (round y) (eval_ppat mpat x)
     -- x@y
     -- Note: y can't be a pattern, like `[bd@<2 6> sd]` parses in both tidal and strudel, but it doesn't do what you would expect.
     -- Good, because that would be hard to support here:) so `y` must be a value
     MList [MCommand "@", MValue (Pos y), x] -> do
-        p <- snd <$> eval_pat env mpat x
+        p <- snd <$> eval_ppat mpat x
         pure (fromInteger $ round y, p)
     -- x&y:z euclidean, see: https://codeberg.org/uzu/strudel/pulls/1630
     MList [MCommand "&", x, xs] -> do
-        (l, xPat) <- eval_pat env mpat x
+        (l, xPat) <- eval_ppat mpat x
         let epat = mpat{localExpr = Just (MCommand "&"), andOp = Just (\yPat zPat -> T.euclid yPat zPat xPat)}
-        (l,) <$> T.timecat <$> traverse (eval_pat env epat) [xs]
+        (l,) <$> T.timecat <$> traverse (eval_ppat epat) [xs]
     -- ~
     Com "~" -> pure (1, T.silence)
     -- Modifier with 1 pattern param, like fast or segment
@@ -280,13 +280,13 @@ eval_pat env mpat expr = case expr of
     MList [Com n, arg]
         | Just mk <- mpat.fromNote
         , Just f <- Map.lookup n pInt_pNum ->
-            fmap (mk . f) <$> eval_pat env (mkMondoPat getInt) arg
+            fmap (mk . f) <$> eval_ppat (mkMondoPat getInt) arg
         | Just mk <- mpat.fromNote
         , Just f <- Map.lookup n pENR_pENR ->
-            fmap (mk . f) <$> eval_pat env (mkMondoPat getNote) arg
+            fmap (mk . f) <$> eval_ppat (mkMondoPat getNote) arg
         | Just mk <- mpat.fromNote
         , Just f <- Map.lookup n pENum_pENum ->
-            fmap (mk . f) <$> eval_pat env (mkMondoPat getNote) arg
+            fmap (mk . f) <$> eval_ppat (mkMondoPat getNote) arg
     MList [Com n, MValue (Pos v)]
         | Just mk <- mpat.fromInt
         , Just f <- Map.lookup n int_pInt ->
@@ -294,14 +294,19 @@ eval_pat env mpat expr = case expr of
     -- see Note [Chaining Functions Locally]
     MList xs | Just fromControl <- mpat.fromControl -> (1,) <$> fromControl <$> eval_list (env{currentParam = mpat.localExpr}) xs
     -- a def variable
-    Com n | Just v <- lookup n env.defs -> eval_pat env mpat v
+    Com n | Just v <- lookup n env.defs -> eval_ppat mpat v
     -- this is a value, make it a pattern.
-    _ | Just v <- mpat.exprToPat expr -> pure $ (1, mpat.patToControl v)
+    _ | Just v <- mpat.exprToPat expr -> pure $ (1, withHighlight $ mpat.patToControl v)
     _ -> mkError ("unexpected pat: " <> show expr) (exprPos expr)
   where
+    withHighlight
+        | highlight = id
+        | otherwise = T.withContext (\c -> c{T.contextPosition = []})
+    eval_ppat :: (T.Parseable a, T.Enumerable a) => MondoPat a b -> MondoExpr -> Either ParseError (Rational, T.Pattern b)
+    eval_ppat = eval_pat highlight env
     eval_op getp appOp param val = do
-        paramPat <- snd <$> eval_pat env (mkMondoPat getp) param
-        (l, valPat) <- eval_pat env mpat val
+        paramPat <- snd <$> eval_ppat (mkMondoPat getp) param
+        (l, valPat) <- eval_ppat mpat val
         pure (l, appOp paramPat valPat)
 
 mkError :: String -> P.SourcePos -> Either ParseError a
