@@ -39,8 +39,13 @@ eval es = case es of
     go defs acc [] = (defs, reverse acc)
     go defs acc (x : xs) = case x of
         MList [Com "def", Com k, v] -> go ((k, v) : defs) acc xs
-        MList (Com "_" : _) -> go defs acc xs
+        MList rest | isMuted rest -> go defs acc xs
         _ -> go defs (x : acc) xs
+    isMuted [] = False
+    isMuted (Com "_" : _) = True
+    isMuted xs = case last xs of
+        MList rest -> isMuted rest
+        _ -> False
 
 eval_top :: Env -> MondoExpr -> Either ParseError T.ControlPattern
 eval_top env (MList xs) = eval_list env xs
