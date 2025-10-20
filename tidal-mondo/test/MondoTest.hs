@@ -229,7 +229,7 @@ run = describe "tidal-mondo" do
         pure ()
 
     describe "mondo tidal" do
-        let itEval mondo tidal = it ("should eval " <> mondo) $ compareP (play mondo) tidal
+        let itEval mondo tidal = it ("should eval " <> mondo) $ comparePD (play mondo) tidal
         itEval "(s [bd sd])" do
             T.sound "bd sd"
         itEval "(s bd*2)" do
@@ -305,6 +305,9 @@ run = describe "tidal-mondo" do
         itEval "s [bd ~ sn cp] # ply [2 3]" $ T.ply "2 3" $ T.s "bd ~ sn cp"
         itEval "s [bd ~ sn cp] # every 3 (ply [2 3])" $ T.every 3 (T.ply "2 3") $ T.s "bd ~ sn cp"
 
+        -- math tests
+        itEval "n c2 # fast 3/4" $ T.fast (3 / 4) $ T.n "c2"
+
         -- add/sub tests
         itEval "n [1 2] # add (n 3) # pan 1" $ T.n "[1 2]" |+ T.n "3" # T.pan 1
         itEval "n 0..12 # sub (n <0 5>) # lpf 1" $ T.n "0..12" |- T.n "<0 5>" # T.cutoff 1
@@ -367,5 +370,13 @@ compareP :: (Ord a, Show a) => T.Pattern a -> T.Pattern a -> Expectation
 compareP p q =
     sort (T.queryArc (stripContext p) a)
         `shouldBe` sort (T.queryArc (stripContext q) a)
+  where
+    a = T.Arc 0 4
+
+-- | Like @compareP@, but tries to 'defragment' the events
+comparePD :: (Ord a, Show a) => T.Pattern a -> T.Pattern a -> Expectation
+comparePD p p' =
+    sort (T.defragParts $ T.queryArc (stripContext p) a)
+        `shouldBe` sort (T.defragParts $ T.queryArc (stripContext p') a)
   where
     a = T.Arc 0 4

@@ -221,6 +221,7 @@ eval_pat env mpat expr = case expr of
     -- x*y
     MList [MCommand "*", param, val] -> eval_op getTime T.fast param val
     -- x/y
+    MList [MCommand "/", MValue x, MValue y] -> eval_pat env mpat $ MValue $ Positioned (y.value / x.value) x.col x.row (y.col - x.col + y.len)
     MList [MCommand "/", param, val] -> eval_op getTime T.slow param val
     -- range x y p
     MList [Com "range", x, y, p]
