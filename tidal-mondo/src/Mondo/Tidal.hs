@@ -83,6 +83,12 @@ pFracReal =
         , ("tri", T.tri)
         ]
 
+pS_pA_pA :: Map String (Pattern String -> Pattern a -> Pattern a)
+pS_pA_pA =
+    Map.fromList
+        [ ("arp", T.arp)
+        ]
+
 pA_pA :: Map String (Pattern a -> Pattern a)
 pA_pA =
     Map.fromList

@@ -102,7 +102,7 @@ eval_list env es = case es of
         | Just f <- Map.lookup n pTime_pA_pA -> eval_mod getTime f param rest
         | Just f <- Map.lookup n pBool_pA_pA -> eval_mod getBool f param rest
         | Just f <- Map.lookup n pInt_pA_pA -> eval_mod getInt f param rest
-    Com "arp" : param : rest -> eval_mod getString T.arp param rest -- arp is the only string modifier
+        | Just f <- Map.lookup n pS_pA_pA -> eval_mod getString f param rest
     Com n : param : MList rest : [] | Just mkMod <- Map.lookup n pCpC_pC_pC -> do
         f <- eval_fun env param
         restPat <- eval_list env rest
@@ -180,6 +180,9 @@ eval_fun env expr = case expr of
             eval_compo (pf f) rest
         | Just pf <- Map.lookup n pTime_pA_pA -> do
             a <- snd <$> eval_pat False env (mkMondoPat getTime) x
+            eval_compo (pf a) rest
+        | Just pf <- Map.lookup n pS_pA_pA -> do
+            a <- snd <$> eval_pat False env (mkMondoPat getString) x
             eval_compo (pf a) rest
     MCommand "_" -> pure id
     Com n

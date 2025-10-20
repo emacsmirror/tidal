@@ -308,6 +308,9 @@ run = describe "tidal-mondo" do
         -- math tests
         itEval "n c2 # fast 3/4" $ T.fast (3 / 4) $ T.n "c2"
 
+        -- lambda tests
+        itEval "n c'min # every 1 (arp up)" $ T.every 1 (T.arp "up") $ T.n "c'min"
+
         -- add/sub tests
         itEval "n [1 2] # add (n 3) # pan 1" $ T.n "[1 2]" |+ T.n "3" # T.pan 1
         itEval "n 0..12 # sub (n <0 5>) # lpf 1" $ T.n "0..12" |- T.n "<0 5>" # T.cutoff 1
