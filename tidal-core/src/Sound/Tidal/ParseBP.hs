@@ -685,7 +685,10 @@ parseNote = do
         ]
 
 fromNote :: (Num a) => Pattern String -> Pattern a
-fromNote pat = fromRight 0 . runParser parseNote 0 "" <$> pat
+fromNote pat = _fromNote <$> pat
+
+_fromNote :: (Num a) => String -> a
+_fromNote str = fromRight 0 . runParser parseNote 0 "" $ str
 
 pColour :: MyParser (TPat ColourD)
 pColour = wrapPos $ do
