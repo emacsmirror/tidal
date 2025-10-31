@@ -426,6 +426,23 @@ pDouble_pC =
         , ("hpf", T.hcutoff)
         , ("vib", T.pF "vib")
         , ("vibmod", T.pF "vibmod")
+        , ("distortvol", T.pF "distortvol")
+        , ("pw", T.pF "pw")
+        , ("lpe", T.pF "lpe")
+        , ("lpa", T.pF "lpa")
+        , ("lpd", T.pF "lpd")
+        , ("lps", T.pF "lps")
+        , ("lpr", T.pF "lpr")
+        , ("hpe", T.pF "hpe")
+        , ("hpa", T.pF "hpa")
+        , ("hpd", T.pF "hpd")
+        , ("hps", T.pF "hps")
+        , ("hpr", T.pF "hpr")
+        , ("bpe", T.pF "bpe")
+        , ("bpa", T.pF "bpa")
+        , ("bpd", T.pF "bpd")
+        , ("bps", T.pF "bps")
+        , ("bpr", T.pF "bpr")
         ]
 
 -- render list with: `grep -r ":: Pattern Int -> ControlPattern$" tidal-core | grep -v "recv" | sed 's/.*.hs:\([^ ]*\).*/  , ("\1", T.\1)/'`
