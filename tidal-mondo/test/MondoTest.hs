@@ -315,6 +315,10 @@ run = describe "tidal-mondo" do
         itEval "n [1 2] # add (n 3) # pan 1" $ T.n "[1 2]" |+ T.n "3" # T.pan 1
         itEval "n 0..12 # sub (n <0 5>) # lpf 1" $ T.n "0..12" |- T.n "<0 5>" # T.cutoff 1
 
+        -- stack tests
+        itEval "s <piano,kawai>" $ T.s "<piano,kawai>"
+        itEval "n <[0 2], 0 .. 12, 12>*2" $ T.n "<[0 2], 0 .. 12, 12>*2"
+
         -- timing tests
         itEval "s superhammond!12 # n 12" $ T.s "superhammond!12" # T.n 12
         itEval "s [bd ~]" $ T.sound "bd ~"

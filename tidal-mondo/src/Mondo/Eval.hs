@@ -215,6 +215,7 @@ eval_pat highlight env mpat expr = case expr of
         (1,) <$> T.slow (pure $ toRational $ length xs) . T.timecat <$> traverse (eval_pat True env mpat) xs
     -- [ ]
     MList (MCommand "square" : xs) -> (1,) <$> T.timecat <$> traverse (eval_pat True env mpat) xs
+    MList (MCommand "stack" : xs) -> (1,) . T.stack . map snd <$> traverse (eval_pat True env mpat) xs
     -- x?
     MList [MCommand "?", x] -> fmap (T.degradeBy 0.5) <$> eval_ppat mpat x
     -- x?y
