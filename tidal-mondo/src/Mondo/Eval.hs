@@ -267,6 +267,11 @@ eval_pat highlight env mpat expr = case expr of
             (l, vibPat) <- eval_ppat mpat y
             vibmodPat <- snd <$> eval_ppat (mkMondoParam "" getDouble (T.pF "vibmod")) x
             pure (l, colonOp vibPat vibmodPat)
+        | Just (Com "distort") <- mpat.localExpr
+        , Just colonOp <- mpat.colonOp -> do
+            (l, yPat) <- eval_ppat mpat y
+            xPat <- snd <$> eval_ppat (mkMondoParam "" getDouble (T.pF "distortvol")) x
+            pure (l, colonOp yPat xPat)
         | Just (MCommand "&") <- mpat.localExpr
         , Just andOp <- mpat.andOp -> do
             yPat <- snd <$> eval_ppat (mkMondoPat getInt) y

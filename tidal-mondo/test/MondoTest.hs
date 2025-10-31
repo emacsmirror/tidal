@@ -325,6 +325,7 @@ run = describe "tidal-mondo" do
         itEval "s piano # vib [1:<2 3>]" $ T.s "piano" # vib "1" # vibmod "<2 3>"
         itEval "s piano # vib 1:2" $ T.s "piano" # vib 1 # vibmod 2
         itEval "s bd:<1 2>" $ T.s "<bd:1 bd:2>"
+        itEval "s bd # distort 2:.5" $ T.s "bd" # T.distort "2" # T.pF "distortvol" 0.5
 
         -- timing tests
         itEval "s superhammond!12 # n 12" $ T.s "superhammond!12" # T.n 12
