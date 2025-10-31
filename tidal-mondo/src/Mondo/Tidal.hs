@@ -21,7 +21,7 @@ import Data.Map.Strict qualified as Map
 import Sound.Tidal.Control qualified as T
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
-import Sound.Tidal.Pattern (ControlPattern, Pattern, Time)
+import Sound.Tidal.Pattern (ControlPattern, Note, Pattern, Time)
 import Sound.Tidal.Pattern qualified as T
 import Sound.Tidal.Stepwise qualified as T
 import Sound.Tidal.UI qualified as T
@@ -426,7 +426,7 @@ pDouble_pC =
         , ("hpf", T.hcutoff)
         ]
 
--- render list with: `grep -r tidal-core ":: Pattern Int -> ControlPattern$" | grep -v "recv" | sed 's/.*.hs:\([^ ]*\).*/  , ("\1", T.\1)/'`
+-- render list with: `grep -r ":: Pattern Int -> ControlPattern$" tidal-core | grep -v "recv" | sed 's/.*.hs:\([^ ]*\).*/  , ("\1", T.\1)/'`
 pInt_pC :: Map String (Pattern Int -> ControlPattern)
 pInt_pC =
     Map.fromList
@@ -436,4 +436,14 @@ pInt_pC =
         , ("cut", T.cut)
         , ("octave", T.octave)
         , ("orbit", T.orbit)
+        ]
+
+pNote_pC :: Map String (Pattern Note -> ControlPattern)
+pNote_pC =
+    Map.fromList
+        [ ("midinote", T.midinote)
+        , ("n", T.n)
+        , ("note", T.note)
+        , ("up", T.up)
+        , ("number", T.number)
         ]

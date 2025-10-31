@@ -60,6 +60,11 @@ eval_list env es = case es of
         restPat <- eval_list env rest
         notePat <- eval_notes param
         pure $ restPat |+| notePat
+    -- When notes are in the middle, eval the rest first then apply the notes with |+|
+    Com "note" : param : MList rest : [] -> do
+        restPat <- eval_list env rest
+        notePat <- eval_ppat (mkMondoNParam "note" getNote T.note) param
+        pure $ restPat |+| notePat
     -- add/sub are custom mondo functions to control how the pattern are applied to the chain
     Com "add" : MList param : MList rest : [] -> do
         restPat <- eval_list env rest
@@ -74,6 +79,7 @@ eval_list env es = case es of
         | Just f <- Map.lookup n pStr_pC -> eval_control (mkMondoParam n getString f) param rest
         | Just f <- Map.lookup n pDouble_pC -> eval_control (mkMondoDParam n f) param rest
         | Just f <- Map.lookup n pInt_pC -> eval_control (mkMondoParam n getInt f) param rest
+        | Just f <- Map.lookup n pNote_pC -> eval_control (mkMondoParam n getNote f) param rest
     -- Generic p* control patterns
     Com p : Com name : param : rest
         | p == "pF" -> eval_control (mkMondoParam name getDouble (T.pF name)) param rest
