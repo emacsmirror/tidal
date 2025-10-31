@@ -424,6 +424,8 @@ pDouble_pC =
           ("dec", T.decay)
         , ("lpf", T.cutoff)
         , ("hpf", T.hcutoff)
+        , ("vib", T.pF "vib")
+        , ("vibmod", T.pF "vibmod")
         ]
 
 -- render list with: `grep -r ":: Pattern Int -> ControlPattern$" tidal-core | grep -v "recv" | sed 's/.*.hs:\([^ ]*\).*/  , ("\1", T.\1)/'`

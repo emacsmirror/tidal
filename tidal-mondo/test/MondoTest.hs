@@ -319,6 +319,13 @@ run = describe "tidal-mondo" do
         itEval "s <piano,kawai>" $ T.s "<piano,kawai>"
         itEval "n <[0 2], 0 .. 12, 12>*2" $ T.n "<[0 2], 0 .. 12, 12>*2"
 
+        -- : tests
+        let vib = T.pF "vib"
+        let vibmod = T.pF "vibmod"
+        itEval "s piano # vib [1:<2 3>]" $ T.s "piano" # vib "1" # vibmod "<2 3>"
+        itEval "s piano # vib 1:2" $ T.s "piano" # vib 1 # vibmod 2
+        itEval "s bd:<1 2>" $ T.s "<bd:1 bd:2>"
+
         -- timing tests
         itEval "s superhammond!12 # n 12" $ T.s "superhammond!12" # T.n 12
         itEval "s [bd ~]" $ T.sound "bd ~"

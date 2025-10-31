@@ -255,18 +255,22 @@ eval_pat highlight env mpat expr = case expr of
         yPat <- snd <$> eval_ppat rpat y
         pure (1, mpat.patToControl $ T.unwrap $ T.fromTo <$> xPat <*> yPat)
     -- x:y
-    MList [MCommand ":", note, sound]
+    MList [MCommand ":", x, y]
         | Just (Com "s") <- mpat.localExpr
         , Just colonOp <- mpat.colonOp -> do
             let colonSoundPat = (mkMondoParam "" getDouble (T.pF "n")){localExpr = Just $ MCommand "n-colon-pat"}
-            (l, soundPat) <- eval_ppat mpat sound
-            notePat <- snd <$> eval_ppat colonSoundPat note
+            (l, soundPat) <- eval_ppat mpat y
+            notePat <- snd <$> eval_ppat colonSoundPat x
             pure (l, colonOp soundPat notePat)
-    MList [MCommand ":", z, y]
+        | Just (Com "vib") <- mpat.localExpr
+        , Just colonOp <- mpat.colonOp -> do
+            (l, vibPat) <- eval_ppat mpat y
+            vibmodPat <- snd <$> eval_ppat (mkMondoParam "" getDouble (T.pF "vibmod")) x
+            pure (l, colonOp vibPat vibmodPat)
         | Just (MCommand "&") <- mpat.localExpr
         , Just andOp <- mpat.andOp -> do
             yPat <- snd <$> eval_ppat (mkMondoPat getInt) y
-            zPat <- snd <$> eval_ppat (mkMondoPat getInt) z
+            zPat <- snd <$> eval_ppat (mkMondoPat getInt) x
             pure (1, andOp yPat zPat)
     -- x!y
     MList [MCommand "!", MValue (Pos y), x] -> do
