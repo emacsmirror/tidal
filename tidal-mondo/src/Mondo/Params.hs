@@ -148,4 +148,4 @@ patWithPos :: Positioned a -> T.Pattern a
 patWithPos v = T.withContext (addPos v) $ pure v.value
 
 addPos :: Positioned a -> T.Context -> T.Context
-addPos vp c = c{T.contextPosition = [((vp.col, vp.row), (vp.col + vp.len, vp.row))]}
+addPos vp c = c{T.contextPosition = [((max 0 $ vp.col - 1, vp.row), (max 1 $ vp.col + vp.len - 1, vp.row))]}

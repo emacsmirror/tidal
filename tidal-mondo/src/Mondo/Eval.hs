@@ -321,8 +321,8 @@ eval_pat highlight env mpat expr = case expr of
     withHighlight
         | highlight = id
         | -- Always highlight key params
-          Just (Com n) <- env.currentParam
-        , n `elem` ["note", "n", "s"] =
+          Just (Com n) <- mpat.localExpr
+        , n `elem` ["note", "n", "sound", "s"] =
             id
         | otherwise = T.withContext (\c -> c{T.contextPosition = []})
     eval_ppat :: (T.Parseable a, T.Enumerable a) => MondoPat a b -> MondoExpr -> Either ParseError (Rational, T.Pattern b)

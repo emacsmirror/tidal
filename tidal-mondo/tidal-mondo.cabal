@@ -48,6 +48,7 @@ test-suite tests
   build-depends:
                 base ==4.*
               , hspec >=2.11.9
+              , parsec
               , tidal-mondo
               , tidal-core
 

@@ -8,6 +8,7 @@ import Data.Functor.Identity (Identity)
 import Data.List (intercalate)
 import Mondo.Token
 import Text.Parsec qualified as P
+import Text.Parsec.Pos qualified as P
 
 -- | The core mondo expr
 data MondoExpr
@@ -118,6 +119,7 @@ isSplit s e = case e of
 mondoP :: Parser MondoExpr
 mondoP = do
     next <- P.anyToken
+    P.setPosition (P.newPos "input" next.row next.col)
     case next.value of
         Plain s -> pure $ MPlain (const s <$> next)
         OpenToken '(' -> MList <$> P.manyTill mondoP (closingP ')')

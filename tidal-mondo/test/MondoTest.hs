@@ -16,6 +16,7 @@ import Sound.Tidal.Scales qualified as T
 import Sound.Tidal.Show ()
 import Sound.Tidal.UI qualified as T
 import Test.Hspec
+import Text.Parsec qualified as P
 
 import Mondo
 
@@ -358,7 +359,18 @@ run = describe "tidal-mondo" do
         itEval "n <a'm9'8 e'7sus4'8> # arp <up down>*2 # sub (n <12 [12 5]>/2)" $ T.n $ T.arp "<up down>*2" "<a'm9'8 e'7sus4'8>" |- "<12 [12 5]>/2"
 
         itEval "$ def melody [0 1 2 3] $ n melody" $ T.n "[0 1 2 3]"
-        pure ()
+
+    describe "parse error location" do
+        let itFail s expected =
+                it ("should fail " <> s) $ case mondoToTidal s of
+                    Right _ -> fail "mondo succeed"
+                    Left err -> let pos = P.errorPos err in (P.sourceLine pos, P.sourceColumn pos) `shouldBe` expected
+
+        itFail "<" (1, 1)
+        itFail " <" (1, 2)
+        itFail "s" (1, 1)
+        itFail " s" (1, 2)
+        itFail " \"" (1, 3)
   where
     play :: String -> T.ControlPattern
     play = either (error . show) id . mondoToTidal
