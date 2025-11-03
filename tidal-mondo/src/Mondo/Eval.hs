@@ -215,7 +215,8 @@ eval_pat highlight env mpat expr = case expr of
             let errPos = P.errorPos err
                 newPos = P.incSourceLine (P.incSourceColumn errPos p.col) p.row
              in Left $ P.setErrorPos newPos err
-        Right pat -> pure (1, T.withContext (addPos p) (mpat.patToControl pat))
+        Right pat ->
+            pure (1, T.deltaContext (p.col - 1) (p.row - 1) (mpat.patToControl pat))
     -- < >
     MList (MCommand "angle" : xs) ->
         (1,) <$> T.slow (pure $ toRational $ length xs) . T.timecat <$> traverse (eval_pat True env mpat) xs
