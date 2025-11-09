@@ -237,14 +237,15 @@ eval_pat highlight env mpat expr = case expr of
     MList [MCommand "/", param, val] -> eval_op getTime T.slow param val
     -- range x y p
     MList [Com "range", x, y, p]
-        | Just rangeOp <- mpat.rangeOp -> do
+        | -- double range
+          Just rangeOp <- mpat.rangeOp -> do
             let rpat = mkMondoPat getDouble
             xPat <- snd <$> eval_ppat rpat x
             yPat <- snd <$> eval_ppat rpat y
             (l, pPat) <- eval_ppat rpat p
             pure (l, mpat.patToControl $ rangeOp xPat yPat pPat)
-    MList [Com "range", x, y, p]
-        | Just rangeOp <- mpat.rangenOp -> do
+        | -- note range
+          Just rangeOp <- mpat.rangenOp -> do
             let rpat = mkMondoPat getNote
             xPat <- snd <$> eval_ppat rpat x
             yPat <- snd <$> eval_ppat rpat y
