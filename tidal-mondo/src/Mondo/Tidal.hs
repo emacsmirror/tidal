@@ -133,6 +133,11 @@ pC_pC =
         [ ("ghost", T.ghost)
         ]
 
+int_time_pA_pA :: Map String (Int -> T.Time -> ControlPattern -> ControlPattern)
+int_time_pA_pA =
+    Map.fromList
+        [ ("stutter", T.stutter)
+        ]
 time_pC_pC :: Map String (T.Time -> ControlPattern -> ControlPattern)
 time_pC_pC =
     Map.fromList
