@@ -121,6 +121,12 @@ pA_pA =
         , ("press", T.press)
         ]
 
+pTime_pC_pC :: Map String (Pattern T.Time -> ControlPattern -> ControlPattern)
+pTime_pC_pC =
+    Map.fromList
+        [ ("hurry", T.hurry)
+        ]
+
 pTime_pTime_pC_pC :: Map String (Pattern T.Time -> Pattern T.Time -> ControlPattern -> ControlPattern)
 pTime_pTime_pC_pC =
     Map.fromList
@@ -161,6 +167,7 @@ pInt_pApA_pA_pA :: Map String (Pattern Int -> (Pattern a -> Pattern a) -> Patter
 pInt_pApA_pA_pA =
     Map.fromList
         [ ("every", T.every)
+        , ("chunk", T.chunk)
         ]
 
 -- sometimes and often are not strictly for control pattern, but it's simpler to restrict them here.
