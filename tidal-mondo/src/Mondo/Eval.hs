@@ -356,6 +356,9 @@ eval_pat highlight env mpat expr = case expr of
         | Just mk <- mpat.fromNote
         , Just f <- Map.lookup n pENum_pENum ->
             fmap (mk . f) <$> eval_ppat (mkMondoPat getNote) arg
+        | Just mk <- mpat.fromDouble
+        , Just f <- Map.lookup n pFrac_pFrac ->
+            fmap (mk . f) <$> eval_ppat (mkMondoPat getDouble) arg
     MList [Com n, MValue (Pos v)]
         | Just mk <- mpat.fromInt
         , Just f <- Map.lookup n int_pInt ->

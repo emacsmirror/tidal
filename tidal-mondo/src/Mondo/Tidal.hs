@@ -101,6 +101,12 @@ pInt_pOrd_pOrd =
         [ ("rot", T.rot)
         ]
 
+pFrac_pFrac :: (Fractional a) => Map String (Pattern a -> Pattern a)
+pFrac_pFrac =
+    Map.fromList
+        [ ("smooth", T.smooth)
+        ]
+
 pA_pA :: Map String (Pattern a -> Pattern a)
 pA_pA =
     Map.fromList
