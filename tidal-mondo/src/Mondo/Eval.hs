@@ -147,6 +147,11 @@ eval_list env es = case es of
             pat1 <- eval_ppat (mkMondoPat getInt) param1
             pat2 <- eval_ppat (mkMondoPat getTime) param2
             eval_mod getDouble (f pat1 pat2) param3 rest
+    Com n : MList c1 : MList c2 : []
+        | Just f <- Map.lookup n pC_pC_pC -> do
+            pc1 <- eval_list env c1
+            pc2 <- eval_list env c2
+            pure $ f pc1 pc2
     -- scale is custom in mondo so that it can be used after the notes like 'n 0 # scale minor'
     Com "scale" : param : MList rest : [] -> eval_scale param rest
     -- n-colon-pat is injected by the eval_pat, when evaluating expression like 'bd:<(1 # lpf 42)>'

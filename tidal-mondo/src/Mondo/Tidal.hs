@@ -212,6 +212,12 @@ pBool_pA_pA =
         , ("mask", T.mask)
         ]
 
+pC_pC_pC :: Map String (ControlPattern -> ControlPattern -> ControlPattern)
+pC_pC_pC =
+    Map.fromList
+        [ ("interlace", T.interlace)
+        ]
+
 pInt_pA_pA :: Map String (Pattern Int -> Pattern a -> Pattern a)
 pInt_pA_pA =
     Map.fromList
@@ -231,6 +237,7 @@ pInt_pC_pC =
         [ ("chop", T.chop)
         , ("spin", T.spin)
         , ("striate", T.striate)
+        , ("gap", T.gap)
         ]
 
 pInt_pDouble_pC_pC :: Map String (Pattern Int -> Pattern Double -> ControlPattern -> ControlPattern)
