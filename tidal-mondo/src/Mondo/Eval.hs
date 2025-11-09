@@ -9,6 +9,7 @@ module Mondo.Eval (eval) where
 
 import Control.Monad (replicateM)
 import Data.Map.Strict qualified as Map
+import GHC.Float (float2Double)
 import Sound.Tidal.Core ((#), (|+), (|+|), (|-))
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
@@ -103,7 +104,7 @@ eval_list env es = case es of
     Com p : Com name : param : rest
         | p == "pF" -> eval_control (mkMondoParam name getDouble (T.pF name)) param rest
         | p == "pI" -> eval_control (mkMondoParam name getInt (T.pI name)) param rest
-        | p == "pN" -> eval_control (mkMondoParam name getNote (T.pN name)) param rest
+        | p == "pN" -> eval_control (mkMondoNParam name getNote (T.pN name)) param rest
         | p == "pS" -> eval_control (mkMondoParam name getString (T.pS name)) param rest
         | p == "pR" -> eval_control (mkMondoParam name getTime (T.pR name)) param rest
         | p == "pB" -> eval_control (mkMondoParam name getBool (T.pB name)) param rest
@@ -359,6 +360,11 @@ eval_pat highlight env mpat expr = case expr of
         | Just mk <- mpat.fromInt
         , Just f <- Map.lookup n int_pInt ->
             pure $ (1, mk (f $ round v))
+    -- note mods
+    MList [Com n, MValue x, rest]
+        | Just mk <- mpat.fromNote
+        , Just f <- Map.lookup n realFrac_pA_pA ->
+            fmap (mk . f (T.Note $ float2Double x.value)) <$> eval_ppat ((mkMondoPat getNote){rangenOp = Just T.range}) rest
     -- see Note [Chaining Functions Locally]
     MList xs | Just fromControl <- mpat.fromControl -> (1,) <$> fromControl <$> eval_list (env{currentParam = mpat.localExpr}) xs
     -- a def variable

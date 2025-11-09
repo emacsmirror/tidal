@@ -147,7 +147,7 @@ getString expr = case expr of
 getNote :: MondoExpr -> Maybe (T.Pattern T.Note)
 getNote expr = case expr of
     MPlain (Positioned n _ _ _)
-        | Just p <- Map.lookup n pFrac -> Just $ T.Note <$> p
+        | Just p <- Map.lookup n pFrac -> Just p
     MPlain s -> case P.runParser T.pNote 0 "input" s.value of
         Left err -> error (show err)
         Right v -> Just (T.withContext (addPos s) $ T.toPat v)
