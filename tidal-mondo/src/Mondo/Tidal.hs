@@ -206,6 +206,12 @@ pCpC_pC_pC =
         , ("jux", T.jux)
         ]
 
+pDouble_pCpC_pC_pC :: Map String (Pattern Double -> (ControlPattern -> ControlPattern) -> ControlPattern -> ControlPattern)
+pDouble_pCpC_pC_pC =
+    Map.fromList
+        [ ("juxBy", T.juxBy)
+        ]
+
 pDouble_pApA_pA_pA :: Map String (Pattern Double -> (Pattern a -> Pattern a) -> Pattern a -> Pattern a)
 pDouble_pApA_pA_pA =
     Map.fromList
