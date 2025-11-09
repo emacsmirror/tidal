@@ -140,6 +140,12 @@ time_pC_pC =
         , ("_pressBy", T._pressBy)
         ]
 
+pApA_pA_pA :: Map String ((Pattern a -> Pattern a) -> Pattern a -> Pattern a)
+pApA_pA_pA =
+    Map.fromList
+        [ ("superimpose", T.superimpose)
+        ]
+
 pTime_pApA_pA_pA :: Map String (Pattern Time -> (Pattern a -> Pattern a) -> Pattern a -> Pattern a)
 pTime_pApA_pA_pA =
     Map.fromList

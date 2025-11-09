@@ -96,7 +96,7 @@ eval_list env es = case es of
     Com n : MValue v : rest
         | Just f <- Map.lookup n time_pC_pC -> f (toRational v.value) <$> eval_list env rest
     -- Modifier with 2 pattern params
-    Com n : param1 : param2 : rest
+    Com n : param1 : param2 : MList rest : []
         | Just f <- Map.lookup n pTime_pTime_pC_pC -> do
             npat1 <- eval_ppat (mkMondoPat getTime) param1
             eval_mod getTime (f npat1) param2 rest
@@ -104,16 +104,14 @@ eval_list env es = case es of
             npat <- eval_ppat (mkMondoPat getInt) param1
             eval_mod getInt (f npat) param2 rest
     -- Modifier with 1 pattern param
-    Com n : param : rest
+    Com n : param : MList rest : []
         | Just f <- Map.lookup n pTime_pA_pA -> eval_mod getTime f param rest
         | Just f <- Map.lookup n pBool_pA_pA -> eval_mod getBool f param rest
         | Just f <- Map.lookup n pInt_pA_pA -> eval_mod getInt f param rest
         | Just f <- Map.lookup n pS_pA_pA -> eval_mod getString f param rest
         | Just f <- Map.lookup n pInt_pOrd_pOrd -> eval_mod getInt f param rest
-    Com n : param : MList rest : [] | Just mkMod <- Map.lookup n pCpC_pC_pC -> do
-        f <- eval_fun env param
-        restPat <- eval_list env rest
-        pure $ mkMod f restPat
+        | Just f <- Map.lookup n pCpC_pC_pC -> eval_fmod f param rest
+        | Just f <- Map.lookup n pApA_pA_pA -> eval_fmod f param rest
     Com n : param1 : param2 : MList rest : []
         | Just f <- Map.lookup n pInt_pApA_pA_pA -> do
             npat <- eval_ppat (mkMondoPat getInt) param1
@@ -170,10 +168,12 @@ eval_list env es = case es of
     -- Evaluate a modifier pattern like 'fast 2'
     eval_mod get app param rest = do
         controlPat <- eval_ppat (mkMondoPat get) param
-        restPat <- case rest of
-            [MList xs] -> eval_list env xs
-            _ -> mkError ("expected command, got: " <> show rest) (exprPos (MList rest))
+        restPat <- eval_list env rest
         pure $ app controlPat restPat
+    eval_fmod app param rest = do
+        f <- eval_fun env param
+        restPat <- eval_list env rest
+        pure $ app f restPat
 
 eval_fun :: Env -> MondoExpr -> Either ParseError (T.ControlPattern -> T.ControlPattern)
 eval_fun env expr = case expr of

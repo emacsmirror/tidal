@@ -346,6 +346,7 @@ run = describe "tidal-mondo" do
 
         -- full tests
         itEval "n [0 ~ 1 2 0 2 ~ 3*2] # rot <0 1> # s drum" $ T.rot "<0 1>" $ T.n "0 ~ 1 2 0 2 ~ 3*2" # T.sound "drum"
+        itEval "s [bd sn [cp ht] hh] # superimpose (fast 2)" $ T.superimpose (T.fast 2) $ T.sound "bd sn [cp ht] hh"
         itEval "s piano # note [c2 c3]" $ T.note "[c2 c3]" # T.sound "piano"
         itEval "n c2 # off 0.125 (add (n 7))" $ T.off 0.125 (|+ T.n 7) $ T.n "c2"
         itEval "s hh*8 # pan (sine # slow <3 1>)" $ T.sound "hh*8" # T.pan (T.slow "<3 1>" T.sine)
