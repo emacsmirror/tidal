@@ -113,10 +113,15 @@ eval_list env es = case es of
         | Just f <- Map.lookup n pC_pC -> f <$> eval_list env rest
     -- Modifier with literal param
     Com n : MValue v : MList rest : []
-        | Just f <- Map.lookup n time_pC_pC -> f (toRational v.value) <$> eval_list env rest
+        | Just f <- Map.lookup n time_pC_pC -> f (toTime v.value) <$> eval_list env rest
     Com n : MValue x : MValue y : MList rest : []
         | Just f <- Map.lookup n int_time_pA_pA -> do
             f (round x.value) (toRational y.value) <$> eval_list env rest
+    Com n : MValue x : MList y : MList (Com "list" : z) : []
+        | Just f <- Map.lookup n time_pC_ppC_pC -> do
+            ypat <- eval_list env y
+            zpat <- traverse (eval_top env) z
+            pure $ f (toTime x.value) ypat zpat
     -- Modifier with 2 pattern params
     Com n : param1 : param2 : MList rest : []
         | Just f <- Map.lookup n pTime_pTime_pC_pC -> eval_mod2 f getTime getTime param1 param2 rest

@@ -109,18 +109,19 @@ getDouble expr = case expr of
         | Just p <- Map.lookup n pFracReal -> Just $ p
     _ -> Nothing
 
+-- note: when using 'toRational, we get weird rational for value like '0.2'
+-- λ> toRational (0.2 :: Float)
+-- 13421773 % 67108864
+toTime :: Float -> T.Time
+toTime v = approxRational v 1e-6
+
 getTime :: MondoExpr -> Maybe (T.Pattern T.Time)
 getTime expr = case expr of
-    MValue v -> Just . patWithPos $ getRat <$> v
+    MValue v -> Just . patWithPos $ toTime <$> v
     MPlain (Positioned n _ _ _)
-        | Just p <- Map.lookup n pFrac -> Just $ getRat <$> (p :: T.Pattern Double)
-        | Just p <- Map.lookup n pFracReal -> Just $ getRat <$> (p :: T.Pattern Double)
+        | Just p <- Map.lookup n pFrac -> Just $ toTime <$> p
+        | Just p <- Map.lookup n pFracReal -> Just $ toTime <$> p
     _ -> Nothing
-  where
-    -- note: when using 'toRational, we get weird rational for value like '0.2'
-    -- λ> toRational (0.2 :: Float)
-    -- 13421773 % 67108864
-    getRat v = approxRational v 1e-6
 
 getInteger :: MondoExpr -> Maybe (T.Pattern Integer)
 getInteger = fmap (fmap toInteger) . getInt

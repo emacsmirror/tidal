@@ -152,6 +152,12 @@ time_pC_pC =
         , ("_pressBy", T._pressBy)
         ]
 
+time_pC_ppC_pC :: Map String (Time -> ControlPattern -> [ControlPattern] -> ControlPattern)
+time_pC_ppC_pC =
+    Map.fromList
+        [ ("weave", T.weave)
+        ]
+
 pApA_pA_pA :: Map String ((Pattern a -> Pattern a) -> Pattern a -> Pattern a)
 pApA_pA_pA =
     Map.fromList

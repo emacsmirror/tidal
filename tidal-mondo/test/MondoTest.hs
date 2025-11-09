@@ -363,6 +363,7 @@ run = describe "tidal-mondo" do
         itEval "s [bd sn:2 [~ bd] sn:2] # chunk 4 (hurry 2)" $ T.chunk 4 (T.hurry 2) $ T.sound "bd sn:2 [~ bd] sn:2"
 
         itEval "s [ho ho:2 ho:3 hc] # smash 3 (list 2 3 4)" $ T.smash 3 [2, 3, 4] $ T.sound "ho ho:2 ho:3 hc"
+        itEval "weave 16 (pan sine) (list (s [bd sn cp]) (s hc*4))" $ T.weave 16 (T.pan T.sine) [T.s "bd sn cp", T.s "hc*4"]
 
         itEval "sound bev # chop 32 # rev # loopAt 8" $ T.loopAt 8 $ T.rev $ T.chop 32 $ T.sound "bev"
         itEval "sound [bd sn] # echo 4 .2 .5" $ T.echo 4 0.2 0.5 $ T.sound "bd sn"
