@@ -8,6 +8,7 @@
 module Mondo.Params where
 
 import Data.Map.Strict qualified as Map
+import Data.Ratio (approxRational)
 import GHC.Float (float2Double)
 import Text.Parsec qualified as P
 
@@ -110,11 +111,16 @@ getDouble expr = case expr of
 
 getTime :: MondoExpr -> Maybe (T.Pattern T.Time)
 getTime expr = case expr of
-    MValue v -> Just . patWithPos $ toRational <$> v
+    MValue v -> Just . patWithPos $ getRat <$> v
     MPlain (Positioned n _ _ _)
-        | Just p <- Map.lookup n pFrac -> Just $ toRational @Double <$> p
-        | Just p <- Map.lookup n pFracReal -> Just $ toRational @Double <$> p
+        | Just p <- Map.lookup n pFrac -> Just $ getRat <$> (p :: T.Pattern Double)
+        | Just p <- Map.lookup n pFracReal -> Just $ getRat <$> (p :: T.Pattern Double)
     _ -> Nothing
+  where
+    -- note: when using 'toRational, we get weird rational for value like '0.2'
+    -- λ> toRational (0.2 :: Float)
+    -- 13421773 % 67108864
+    getRat v = approxRational v 1e-6
 
 getInteger :: MondoExpr -> Maybe (T.Pattern Integer)
 getInteger = fmap (fmap toInteger) . getInt
