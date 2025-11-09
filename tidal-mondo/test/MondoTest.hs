@@ -227,6 +227,9 @@ run = describe "tidal-mondo" do
             desguar "sometimes (# lpf 1 # jux rev)"
                 `shouldBe` "(sometimes (fn (_) (jux rev (lpf 1 _))))"
 
+        it "should desugar div" do
+            desguar "s bd # stutter 4 1/16"
+                `shouldBe` "(stutter 4 (/ 16 1) (s bd))"
         pure ()
 
     describe "mondo tidal" do
@@ -345,7 +348,7 @@ run = describe "tidal-mondo" do
         itEval "$ s bd $_ s sd # lpf 5" $ T.sound "bd"
 
         -- full tests
-        itEval "s [bd cp] # stutter 4 0.5" $ T.stutter 4 0.5 $ T.s "bd cp"
+        itEval "s [bd cp] # stutter 4 1/16" $ T.stutter (4 :: Int) (1 / 16) $ T.s "bd cp"
         itEval "n [0 ~ 1 2 0 2 ~ 3*2] # rot <0 1> # s drum" $ T.rot "<0 1>" $ T.n "0 ~ 1 2 0 2 ~ 3*2" # T.sound "drum"
         itEval "s [bd sn [cp ht] hh] # superimpose (fast 2)" $ T.superimpose (T.fast 2) $ T.sound "bd sn [cp ht] hh"
         itEval "s piano # note [c2 c3]" $ T.note "[c2 c3]" # T.sound "piano"

@@ -30,11 +30,11 @@ pattern Com :: String -> MondoExpr
 pattern Com s <- MPlain (Pos s)
 
 eval :: MondoExpr -> Either ParseError T.ControlPattern
-eval es = case es of
+eval es = case (eval_maths es) of
     MList (MCommand "stack" : rest) ->
         let (defs, pats) = go [] [] rest
          in eval_list (Env Nothing Nothing defs) $ MCommand "stack" : pats
-    _ -> eval_top newEnv es
+    pats -> eval_top newEnv pats
   where
     go defs acc [] = (defs, reverse acc)
     go defs acc (x : xs) = case x of
@@ -46,6 +46,25 @@ eval es = case es of
     isMuted xs = case last xs of
         MList rest -> isMuted rest
         _ -> False
+
+mathOp :: String -> Maybe (Float -> Float -> Float)
+mathOp "/" = Just (/)
+mathOp "+" = Just (+)
+mathOp "-" = Just (-)
+mathOp _ = Nothing
+
+eval_maths :: MondoExpr -> MondoExpr
+eval_maths expr = case expr of
+    MList [MCommand mathCommand, y, x] -- note: ops arg are inverted
+        | MValue xv <- eval_maths x
+        , MValue yv <- eval_maths y
+        , Just op <- mathOp mathCommand ->
+            let v = (op xv.value yv.value)
+                l = yv.col - xv.col + yv.len
+             in MValue (Positioned v yv.col yv.row l)
+    MList xs -> MList $ map eval_maths xs
+    MLam x y -> MLam x (eval_maths y)
+    other -> other
 
 eval_top :: Env -> MondoExpr -> Either ParseError T.ControlPattern
 eval_top env (MList xs) = eval_list env xs
@@ -236,7 +255,6 @@ eval_pat highlight env mpat expr = case expr of
     -- x*y
     MList [MCommand "*", param, val] -> eval_op getTime T.fast param val
     -- x/y
-    MList [MCommand "/", MValue x, MValue y] -> eval_ppat mpat $ MValue $ Positioned (y.value / x.value) x.col x.row (y.col - x.col + y.len)
     MList [MCommand "/", param, val] -> eval_op getTime T.slow param val
     -- range x y p
     MList [Com "range", x, y, p]
