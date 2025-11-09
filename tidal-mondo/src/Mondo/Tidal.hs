@@ -135,6 +135,12 @@ pTime_pTime_pA_pA =
         , ("beat", T.beat)
         ]
 
+pTime_int_pInt_pInt_pA_pA :: Map String (Pattern Time -> Int -> Pattern Int -> Pattern Int -> Pattern a -> Pattern a)
+pTime_int_pInt_pInt_pA_pA =
+    Map.fromList
+        [ ("fit'", T.fit')
+        ]
+
 pC_pC :: Map String (ControlPattern -> ControlPattern)
 pC_pC =
     Map.fromList

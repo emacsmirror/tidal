@@ -359,6 +359,7 @@ run = describe "tidal-mondo" do
         itEval "interlace (s [bd sn kurt]) (s [bd sn:2] # every 3 rev)" $ T.interlace (T.sound "bd sn kurt") (T.every 3 T.rev $ T.sound "bd sn:2")
         itEval "s bd*8 # sometimesBy 0.25 (density 2)" $ T.sometimesBy 0.25 (T.density 2) $ T.sound "bd*8"
         itEval "s arpy # n [0 1 [~ 2] 3] # someCyclesBy 0.5 (# crush 2)" $ T.someCyclesBy 0.5 (# T.crush 2) $ T.n "0 1 [~ 2] 3" # T.sound "arpy"
+        itEval "s [bd sn] # fit' 1 2 [0 1] [1 0]" $ T.sound (T.fit' 1 2 "0 1" "1 0" "bd sn")
         itEval "s bev # randslice 32 # fast 4" $ T.fast 4 $ T.randslice 32 $ T.sound "bev"
         itEval "s [bd cp] # stutter 4 1/16" $ T.stutter (4 :: Int) (1 / 16) $ T.s "bd cp"
         itEval "s [bd hh sn cp] # chunk 4 (# speed 2)" $ T.chunk 4 (# T.speed 2) $ T.sound "bd hh sn cp"

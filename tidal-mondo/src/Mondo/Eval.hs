@@ -220,6 +220,12 @@ eval_fun env expr = case expr of
             pat1 <- eval_ppat (mkMondoPat getInt) param1
             pat2 <- eval_ppat (mkMondoPat getTime) param2
             eval_mod getDouble (f pat1 pat2) param3 rest
+    MList (Com n : p1 : MValue p2 : p3 : p4 : rest)
+        | Just f <- Map.lookup n pTime_int_pInt_pInt_pA_pA -> do
+            pat1 <- eval_ppat (mkMondoPat getTime) p1
+            pat3 <- eval_ppat (mkMondoPat getInt) p3
+            pat4 <- eval_ppat (mkMondoPat getInt) p4
+            eval_compo (f pat1 (round p2.value) pat3 pat4) rest
     MCommand "_" -> pure id
     Com _ -> eval_fun env (MList [expr])
     MList xs -> case eval_list env xs of
