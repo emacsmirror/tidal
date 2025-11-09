@@ -174,6 +174,7 @@ eval_fun env expr = case expr of
     -- Modifiers with literal param
     MList (Com n : MValue v : rest)
         | Just f <- Map.lookup n time_pC_pC -> eval_compo (f $ toTime v.value) rest
+        | Just f <- Map.lookup n time_pA_pA -> eval_compo (f $ toTime v.value) rest
     MList (Com n : MValue x : MValue y : rest)
         | Just f <- Map.lookup n int_time_pA_pA -> eval_compo (f (round x.value) (toRational y.value)) rest
     -- Modifiers with one param
@@ -193,7 +194,7 @@ eval_fun env expr = case expr of
             eval_compo (f pc1) rest
     -- Modifiers with two params
     MList (Com n : param1 : param2 : rest)
-        | Just f <- Map.lookup n pTime_pTime_pC_pC -> eval_mod2 f getTime getTime param1 param2 rest
+        | Just f <- Map.lookup n pTime_pTime_pA_pA -> eval_mod2 f getTime getTime param1 param2 rest
         | Just f <- Map.lookup n pInt_pInt_pC_pC -> eval_mod2 f getInt getInt param1 param2 rest
         | Just f <- Map.lookup n pInt_pDouble_pC_pC -> eval_mod2 f getInt getDouble param1 param2 rest
         | Just f <- Map.lookup n pDouble_pApA_pA_pA -> do

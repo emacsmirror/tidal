@@ -128,16 +128,24 @@ pTime_pC_pC =
         , ("loopAt", T.loopAt)
         ]
 
-pTime_pTime_pC_pC :: Map String (Pattern T.Time -> Pattern T.Time -> ControlPattern -> ControlPattern)
-pTime_pTime_pC_pC =
+pTime_pTime_pA_pA :: Map String (Pattern T.Time -> Pattern T.Time -> Pattern a -> Pattern a)
+pTime_pTime_pA_pA =
     Map.fromList
         [ ("ribbon", T.ribbon)
+        , ("beat", T.beat)
         ]
 
 pC_pC :: Map String (ControlPattern -> ControlPattern)
 pC_pC =
     Map.fromList
         [ ("ghost", T.ghost)
+        ]
+
+time_pA_pA :: Map String (T.Time -> Pattern a -> Pattern a)
+time_pA_pA =
+    Map.fromList
+        [ ("fadeOut", T.fadeOut)
+        , ("fadeIn", T.fadeIn)
         ]
 
 int_time_pA_pA :: Map String (Int -> T.Time -> ControlPattern -> ControlPattern)
