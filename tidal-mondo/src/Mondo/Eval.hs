@@ -196,6 +196,10 @@ eval_fun env expr = case expr of
         | Just f <- Map.lookup n pTime_pTime_pC_pC -> eval_mod2 f getTime getTime param1 param2 rest
         | Just f <- Map.lookup n pInt_pInt_pC_pC -> eval_mod2 f getInt getInt param1 param2 rest
         | Just f <- Map.lookup n pInt_pDouble_pC_pC -> eval_mod2 f getInt getDouble param1 param2 rest
+        | Just f <- Map.lookup n pDouble_pApA_pA_pA -> do
+            pat1 <- eval_ppat (mkMondoPat getDouble) param1
+            g <- eval_fun env param2
+            eval_compo (f pat1 g) rest
         | Just f <- Map.lookup n pInt_ppTime_pC_pC
         , MList (Com "list" : xs) <- param2 -> do
             npat <- eval_ppat (mkMondoPat getInt) param1

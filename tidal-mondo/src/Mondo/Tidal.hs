@@ -192,6 +192,13 @@ pCpC_pC_pC =
         , ("jux", T.jux)
         ]
 
+pDouble_pApA_pA_pA :: Map String (Pattern Double -> (Pattern a -> Pattern a) -> Pattern a -> Pattern a)
+pDouble_pApA_pA_pA =
+    Map.fromList
+        [ ("sometimesBy", T.sometimesBy)
+        , ("someCyclesBy", T.someCyclesBy)
+        ]
+
 pTime_pA_pA :: Map String (Pattern T.Time -> Pattern a -> Pattern a)
 pTime_pA_pA =
     Map.fromList
