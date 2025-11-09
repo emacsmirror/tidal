@@ -241,6 +241,12 @@ pInt_pInt_pC_pC =
         , ("chew", T.chew)
         ]
 
+pInt_pTime_pDouble_pC_pC :: Map String (Pattern Int -> Pattern Rational -> Pattern Double -> ControlPattern -> ControlPattern)
+pInt_pTime_pDouble_pC_pC =
+    Map.fromList
+        [ ("echo", \p -> T.echo (toInteger <$> p))
+        ]
+
 -- render list with: `grep -r tidal-core ":: Pattern Double -> ControlPattern" | sed 's/.*.hs:\([^ ]+\).*/  , ("\1", T.\1)/'`
 pDouble_pC :: Map String (Pattern Double -> ControlPattern)
 pDouble_pC =

@@ -116,6 +116,9 @@ getTime expr = case expr of
         | Just p <- Map.lookup n pFracReal -> Just $ toRational @Double <$> p
     _ -> Nothing
 
+getInteger :: MondoExpr -> Maybe (T.Pattern Integer)
+getInteger = fmap (fmap toInteger) . getInt
+
 getInt :: MondoExpr -> Maybe (T.Pattern Int)
 getInt expr = case expr of
     MValue v -> Just . patWithPos $ round <$> v
