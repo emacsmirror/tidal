@@ -289,7 +289,7 @@ eval_pat highlight env mpat expr = case expr of
         pure (1, mpat.patToControl $ T.unwrap $ T.fromTo <$> xPat <*> yPat)
     -- x:y
     MList [MCommand ":", x, y]
-        | Just (Com "s") <- mpat.localExpr
+        | isSound mpat.localExpr
         , Just colonOp <- mpat.colonOp -> do
             let colonSoundPat = (mkMondoParam "" getDouble (T.pF "n")){localExpr = Just $ MCommand "n-colon-pat"}
             (l, soundPat) <- eval_ppat mpat y
@@ -364,6 +364,12 @@ eval_pat highlight env mpat expr = case expr of
         paramPat <- snd <$> eval_ppat (mkMondoPat getp) param
         (l, valPat) <- eval_ppat mpat val
         pure (l, appOp paramPat valPat)
+
+isSound :: Maybe MondoExpr -> Bool
+isSound me = case me of
+    Just (Com "s") -> True
+    Just (Com "sound") -> True
+    _ -> False
 
 mkError :: String -> P.SourcePos -> Either ParseError a
 mkError s = Left . P.newErrorMessage (P.Message s)
