@@ -119,12 +119,9 @@ eval_list env es = case es of
             f (round x.value) (toRational y.value) <$> eval_list env rest
     -- Modifier with 2 pattern params
     Com n : param1 : param2 : MList rest : []
-        | Just f <- Map.lookup n pTime_pTime_pC_pC -> do
-            npat1 <- eval_ppat (mkMondoPat getTime) param1
-            eval_mod getTime (f npat1) param2 rest
-        | Just f <- Map.lookup n pInt_pInt_pC_pC -> do
-            npat <- eval_ppat (mkMondoPat getInt) param1
-            eval_mod getInt (f npat) param2 rest
+        | Just f <- Map.lookup n pTime_pTime_pC_pC -> eval_mod2 f getTime getTime param1 param2 rest
+        | Just f <- Map.lookup n pInt_pInt_pC_pC -> eval_mod2 f getInt getInt param1 param2 rest
+        | Just f <- Map.lookup n pInt_pDouble_pC_pC -> eval_mod2 f getInt getDouble param1 param2 rest
     -- Modifier with 1 pattern param
     Com n : param : MList rest : []
         | Just f <- Map.lookup n pTime_pA_pA -> eval_mod getTime f param rest
@@ -194,6 +191,9 @@ eval_list env es = case es of
                 pure $ restPat # paramPat
             other -> mkError ("unexpected control: " <> show other) $ exprPos (MList other)
 
+    eval_mod2 f get1 get2 param1 param2 rest = do
+        npat1 <- eval_ppat (mkMondoPat get1) param1
+        eval_mod get2 (f npat1) param2 rest
     -- Evaluate a modifier pattern like 'fast 2'
     eval_mod get app param rest = do
         controlPat <- eval_ppat (mkMondoPat get) param

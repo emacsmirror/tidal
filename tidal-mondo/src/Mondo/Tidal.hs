@@ -229,6 +229,14 @@ pInt_pC_pC :: Map String (Pattern Int -> ControlPattern -> ControlPattern)
 pInt_pC_pC =
     Map.fromList
         [ ("chop", T.chop)
+        , ("spin", T.spin)
+        , ("striate", T.striate)
+        ]
+
+pInt_pDouble_pC_pC :: Map String (Pattern Int -> Pattern Double -> ControlPattern -> ControlPattern)
+pInt_pDouble_pC_pC =
+    Map.fromList
+        [ ("striateBy", T.striateBy)
         ]
 
 pInt_pInt_pC_pC :: Map String (Pattern Int -> Pattern Int -> ControlPattern -> ControlPattern)

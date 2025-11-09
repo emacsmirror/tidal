@@ -348,6 +348,9 @@ run = describe "tidal-mondo" do
         itEval "$ s bd $_ s sd # lpf 5" $ T.sound "bd"
 
         -- full tests
+        itEval "s [drum*3 tabla:4 [arpy:2 ~ arpy] [can:2 can:3]] # spin 4 # slow 3" $ T.slow 3 $ T.spin 4 $ T.sound "drum*3 tabla:4 [arpy:2 ~ arpy] [can:2 can:3]"
+        itEval "s bev # striate 128 # slow 8" $ T.slow 8 $ T.striate 128 $ T.s "bev"
+        itEval "s bev # striateBy 32 1/16 # slow 32" $ T.slow 32 $ T.striateBy 32 (1 / 16) $ T.sound "bev"
         itEval "s [bd cp] # stutter 4 1/16" $ T.stutter (4 :: Int) (1 / 16) $ T.s "bd cp"
         itEval "s [bd hh sn cp] # chunk 4 (# speed 2)" $ T.chunk 4 (# T.speed 2) $ T.sound "bd hh sn cp"
         itEval "s [bd sn:2 [~ bd] sn:2] # chunk 4 (hurry 2)" $ T.chunk 4 (T.hurry 2) $ T.sound "bd sn:2 [~ bd] sn:2"
