@@ -1,5 +1,6 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE TypeApplications #-}
@@ -15,7 +16,6 @@ import Text.Parsec qualified as P
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.ParseBP qualified as T
 import Sound.Tidal.Pattern qualified as T
-import Sound.Tidal.UI qualified as T
 
 import Mondo.Parser
 import Mondo.Tidal
@@ -33,27 +33,35 @@ data Env = Env
 newEnv :: Env
 newEnv = Env Nothing Nothing []
 
+data Pat a where
+    PNote :: Pat T.Note
+    PDouble :: Pat Double
+    PStr :: Pat String
+    PInt :: Pat Int
+    PTime :: Pat T.Time
+    PBool :: Pat Bool
+
+exprToPat :: Pat a -> MondoExpr -> Maybe (T.Pattern a)
+exprToPat pat expr = case pat of
+    PNote -> getNote expr
+    PDouble -> getDouble expr
+    PStr -> getString expr
+    PInt -> getInt expr
+    PTime -> getTime expr
+    PBool -> getBool expr
+
 -- | A pattern that can be parsed with 'eval_pat'.
 data MondoPat a b = MondoPat
     { localExpr :: Maybe MondoExpr
     -- ^ The local expr, use to decide how to handle ':' operation
-    , exprToPat :: MondoExpr -> Maybe (T.Pattern a)
-    -- ^ How to read a MondoExpr, e.g. getString.
+    , pat :: Pat a
+    -- ^ How to read a MondoExpr
     , patToControl :: T.Pattern a -> T.Pattern b
     -- ^ How to make a ControlPattern.
     , colonOp :: Maybe (T.Pattern b -> T.ControlPattern -> T.Pattern b)
     -- ^ How to handle the ':' operator.
     , andOp :: Maybe (T.Pattern Int -> T.Pattern Int -> T.Pattern b)
     -- ^ How to handle the '&' operator.
-    , rangeOp :: Maybe (T.Pattern Double -> T.Pattern Double -> T.Pattern Double -> T.Pattern a)
-    , rangenOp :: Maybe (T.Pattern T.Note -> T.Pattern T.Note -> T.Pattern T.Note -> T.Pattern a)
-    -- ^ How to handle the range operator.
-    , fromNote :: Maybe (T.Pattern T.Note -> T.Pattern b)
-    -- ^ How to convert from note patterns like irand
-    , fromDouble :: Maybe (T.Pattern Double -> T.Pattern b)
-    -- ^ How to convert from double patterns like smooth
-    , fromInt :: Maybe (T.Pattern Int -> T.Pattern b)
-    -- ^ How to convert from int patterns like randrun
     , fromControl :: Maybe (T.ControlPattern -> T.Pattern b)
     -- ^ How to evaluated nested expression, see Note [Chaining Functions Locally]
     }
@@ -76,31 +84,20 @@ mkP :: String -> MondoExpr
 mkP n = MPlain (Positioned n 0 0 0)
 
 -- * Helpers to map mondo to tidal
-mkMondoParam :: String -> (MondoExpr -> Maybe (T.Pattern a)) -> (T.Pattern a -> T.ControlPattern) -> MondoParam a
-mkMondoParam name get app =
+mkMondoParam :: String -> Pat a -> (T.Pattern a -> T.ControlPattern) -> MondoParam a
+mkMondoParam name pat app =
     MondoPat
         { localExpr = Just $ mkP name
-        , exprToPat = get
+        , pat = pat
         , patToControl = app
         , colonOp = Just (T.|+|)
         , andOp = Nothing
-        , rangeOp = Nothing
-        , rangenOp = Nothing
         , fromControl = Just id
-        , fromNote = Nothing
-        , fromInt = Nothing
-        , fromDouble = Nothing
         }
 
-mkMondoNParam :: String -> (MondoExpr -> Maybe (T.Pattern T.Note)) -> (T.Pattern T.Note -> T.ControlPattern) -> MondoParam T.Note
-mkMondoNParam name get app = (mkMondoParam name get app){rangenOp = Just T.range, fromNote = Just app, fromInt = Just (app . fmap fromIntegral)}
-
-mkMondoDParam :: String -> (T.Pattern Double -> T.ControlPattern) -> MondoParam Double
-mkMondoDParam name app = (mkMondoParam name getDouble app){rangeOp = Just T.range, fromDouble = Just app}
-
 -- | Create the simplest pattern, useful for example to parse the notes from 'bd:<1 2>'
-mkMondoPat :: (MondoExpr -> Maybe (T.Pattern a)) -> MondoPat a a
-mkMondoPat exprToPat = MondoPat Nothing exprToPat id Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+mkMondoPat :: Pat a -> MondoPat a a
+mkMondoPat pat = MondoPat Nothing pat id Nothing Nothing Nothing
 
 type MondoParam a = MondoPat a T.ValueMap
 
@@ -155,6 +152,17 @@ getNote expr = case expr of
         Left err -> error (show err)
         Right v -> Just (T.withContext (addPos s) $ T.toPat v)
     MValue v -> Just . patWithPos $ T.Note . float2Double <$> v
+    _ -> Nothing
+
+fromInt :: MondoPat a b -> Maybe (T.Pattern Int -> T.Pattern b)
+fromInt mpat = case mpat.pat of
+    PNote -> Just (mpat.patToControl . fmap fromIntegral)
+    PInt -> Just mpat.patToControl
+    _ -> Nothing
+
+fromNote :: MondoPat a b -> Maybe (T.Pattern T.Note -> T.Pattern b)
+fromNote mpat = case mpat.pat of
+    PNote -> Just mpat.patToControl
     _ -> Nothing
 
 patWithPos :: Positioned a -> T.Pattern a
