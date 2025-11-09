@@ -89,6 +89,12 @@ pS_pA_pA =
         [ ("arp", T.arp)
         ]
 
+pInt_pOrd_pOrd :: (Ord a) => Map String (Pattern Int -> Pattern a -> Pattern a)
+pInt_pOrd_pOrd =
+    Map.fromList
+        [ ("rot", T.rot)
+        ]
+
 pA_pA :: Map String (Pattern a -> Pattern a)
 pA_pA =
     Map.fromList

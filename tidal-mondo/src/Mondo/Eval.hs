@@ -109,6 +109,7 @@ eval_list env es = case es of
         | Just f <- Map.lookup n pBool_pA_pA -> eval_mod getBool f param rest
         | Just f <- Map.lookup n pInt_pA_pA -> eval_mod getInt f param rest
         | Just f <- Map.lookup n pS_pA_pA -> eval_mod getString f param rest
+        | Just f <- Map.lookup n pInt_pOrd_pOrd -> eval_mod getInt f param rest
     Com n : param : MList rest : [] | Just mkMod <- Map.lookup n pCpC_pC_pC -> do
         f <- eval_fun env param
         restPat <- eval_list env rest
@@ -184,12 +185,9 @@ eval_fun env expr = case expr of
         | Just pf <- Map.lookup n pCpC_pC_pC -> do
             f <- eval_fun env x
             eval_compo (pf f) rest
-        | Just pf <- Map.lookup n pTime_pA_pA -> do
-            a <- snd <$> eval_pat False env (mkMondoPat getTime) x
-            eval_compo (pf a) rest
-        | Just pf <- Map.lookup n pS_pA_pA -> do
-            a <- snd <$> eval_pat False env (mkMondoPat getString) x
-            eval_compo (pf a) rest
+        | Just f <- Map.lookup n pTime_pA_pA -> eval_mod getTime f x rest
+        | Just f <- Map.lookup n pS_pA_pA -> eval_mod getString f x rest
+        | Just f <- Map.lookup n pInt_pOrd_pOrd -> eval_mod getInt f x rest
     MCommand "_" -> pure id
     Com n
         | Just f <- Map.lookup n pA_pA -> pure f
@@ -199,6 +197,9 @@ eval_fun env expr = case expr of
         Right p -> pure (# p)
     _ -> mkError ("expected fun, got: " <> show expr) (exprPos expr)
   where
+    eval_mod get app param rest = do
+        a <- snd <$> eval_pat False env (mkMondoPat get) param
+        eval_compo (app a) rest
     eval_compo f rest = case rest of
         [] -> pure f
         [x] -> do
@@ -207,7 +208,7 @@ eval_fun env expr = case expr of
         _ -> mkError ("unexpected fun: " <> show rest) (exprPos (MList rest))
 
 -- Evaluate a 'MondoExpr', according to a 'MondoPat', into a tidal pattern.
-eval_pat :: (T.Parseable a, T.Enumerable a) => Bool -> Env -> MondoPat a b -> MondoExpr -> Either ParseError (Rational, T.Pattern b)
+eval_pat :: (T.Parseable a, T.Enumerable a, Ord a) => Bool -> Env -> MondoPat a b -> MondoExpr -> Either ParseError (Rational, T.Pattern b)
 eval_pat highlight env mpat expr = case expr of
     -- Use tidal mini notation
     MString p -> case T.parseBP p.value of
@@ -326,7 +327,7 @@ eval_pat highlight env mpat expr = case expr of
         , n `elem` ["note", "n", "sound", "s"] =
             id
         | otherwise = T.withContext (\c -> c{T.contextPosition = []})
-    eval_ppat :: (T.Parseable a, T.Enumerable a) => MondoPat a b -> MondoExpr -> Either ParseError (Rational, T.Pattern b)
+    eval_ppat :: (T.Parseable a, T.Enumerable a, Ord a) => MondoPat a b -> MondoExpr -> Either ParseError (Rational, T.Pattern b)
     eval_ppat = eval_pat highlight env
     eval_op getp appOp param val = do
         paramPat <- snd <$> eval_ppat (mkMondoPat getp) param
