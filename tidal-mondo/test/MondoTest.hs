@@ -230,6 +230,10 @@ run = describe "tidal-mondo" do
         it "should desugar div" do
             desguar "s bd # stutter 4 1/16"
                 `shouldBe` "(stutter 4 (/ 16 1) (s bd))"
+
+        it "should desugar list" do
+            desguar "smash 3 (list 2 3 4)"
+                `shouldBe` "(smash 3 (list 2 3 4))"
         pure ()
 
     describe "mondo tidal" do
@@ -353,9 +357,13 @@ run = describe "tidal-mondo" do
         itEval "s bev # striateBy 32 1/16 # slow 32" $ T.slow 32 $ T.striateBy 32 (1 / 16) $ T.sound "bev"
         itEval "s [jvbass drum:4] # gap 16" $ T.gap 16 $ T.sound "[jvbass drum:4]"
         itEval "interlace (s [bd sn kurt]) (s [bd sn:2] # every 3 rev)" $ T.interlace (T.sound "bd sn kurt") (T.every 3 T.rev $ T.sound "bd sn:2")
+        itEval "s bev # randslice 32 # fast 4" $ T.fast 4 $ T.randslice 32 $ T.sound "bev"
         itEval "s [bd cp] # stutter 4 1/16" $ T.stutter (4 :: Int) (1 / 16) $ T.s "bd cp"
         itEval "s [bd hh sn cp] # chunk 4 (# speed 2)" $ T.chunk 4 (# T.speed 2) $ T.sound "bd hh sn cp"
         itEval "s [bd sn:2 [~ bd] sn:2] # chunk 4 (hurry 2)" $ T.chunk 4 (T.hurry 2) $ T.sound "bd sn:2 [~ bd] sn:2"
+
+        itEval "s [ho ho:2 ho:3 hc] # smash 3 (list 2 3 4)" $ T.smash 3 [2, 3, 4] $ T.sound "ho ho:2 ho:3 hc"
+
         itEval "sound bev # chop 32 # rev # loopAt 8" $ T.loopAt 8 $ T.rev $ T.chop 32 $ T.sound "bev"
         itEval "sound [bd sn] # echo 4 .2 .5" $ T.echo 4 0.2 0.5 $ T.sound "bd sn"
         itEval "n [0 ~ 1 2 0 2 ~ 3*2] # rot <0 1> # s drum" $ T.rot "<0 1>" $ T.n "0 ~ 1 2 0 2 ~ 3*2" # T.sound "drum"

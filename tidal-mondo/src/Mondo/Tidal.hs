@@ -164,6 +164,12 @@ pTime_pApA_pA_pA =
         [ ("off", T.off)
         ]
 
+pInt_ppTime_pC_pC :: Map String (Pattern Int -> [Pattern Time] -> ControlPattern -> ControlPattern)
+pInt_ppTime_pC_pC =
+    Map.fromList
+        [ ("smash", T.smash)
+        ]
+
 pInt_pApA_pA_pA :: Map String (Pattern Int -> (Pattern a -> Pattern a) -> Pattern a -> Pattern a)
 pInt_pApA_pA_pA =
     Map.fromList
@@ -238,6 +244,7 @@ pInt_pC_pC =
         , ("spin", T.spin)
         , ("striate", T.striate)
         , ("gap", T.gap)
+        , ("randslice", T.randslice)
         ]
 
 pInt_pDouble_pC_pC :: Map String (Pattern Int -> Pattern Double -> ControlPattern -> ControlPattern)

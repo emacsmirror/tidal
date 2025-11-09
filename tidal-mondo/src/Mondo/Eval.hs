@@ -122,6 +122,12 @@ eval_list env es = case es of
         | Just f <- Map.lookup n pTime_pTime_pC_pC -> eval_mod2 f getTime getTime param1 param2 rest
         | Just f <- Map.lookup n pInt_pInt_pC_pC -> eval_mod2 f getInt getInt param1 param2 rest
         | Just f <- Map.lookup n pInt_pDouble_pC_pC -> eval_mod2 f getInt getDouble param1 param2 rest
+        | Just f <- Map.lookup n pInt_ppTime_pC_pC
+        , MList (Com "list" : xs) <- param2 -> do
+            npat <- eval_ppat (mkMondoPat getInt) param1
+            tpats <- traverse (eval_ppat (mkMondoPat getTime)) xs
+            rpat <- eval_list env rest
+            pure $ f npat tpats rpat
     -- Modifier with 1 pattern param
     Com n : param : MList rest : []
         | Just f <- Map.lookup n pTime_pA_pA -> eval_mod getTime f param rest
