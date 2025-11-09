@@ -125,6 +125,7 @@ pTime_pC_pC :: Map String (Pattern T.Time -> ControlPattern -> ControlPattern)
 pTime_pC_pC =
     Map.fromList
         [ ("hurry", T.hurry)
+        , ("loopAt", T.loopAt)
         ]
 
 pTime_pTime_pC_pC :: Map String (Pattern T.Time -> Pattern T.Time -> ControlPattern -> ControlPattern)
@@ -222,6 +223,12 @@ pInt_pA_pA =
         , ("slowstripe", T.slowstripe)
         , ("shuffle", T.shuffle)
         , ("scramble", T.scramble)
+        ]
+
+pInt_pC_pC :: Map String (Pattern Int -> ControlPattern -> ControlPattern)
+pInt_pC_pC =
+    Map.fromList
+        [ ("chop", T.chop)
         ]
 
 pInt_pInt_pC_pC :: Map String (Pattern Int -> Pattern Int -> ControlPattern -> ControlPattern)

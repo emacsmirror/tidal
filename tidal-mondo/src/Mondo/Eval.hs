@@ -131,6 +131,7 @@ eval_list env es = case es of
         | Just f <- Map.lookup n pTime_pC_pC -> eval_mod getTime f param rest
         | Just f <- Map.lookup n pBool_pA_pA -> eval_mod getBool f param rest
         | Just f <- Map.lookup n pInt_pA_pA -> eval_mod getInt f param rest
+        | Just f <- Map.lookup n pInt_pC_pC -> eval_mod getInt f param rest
         | Just f <- Map.lookup n pS_pA_pA -> eval_mod getString f param rest
         | Just f <- Map.lookup n pInt_pOrd_pOrd -> eval_mod getInt f param rest
         | Just f <- Map.lookup n pCpC_pC_pC -> eval_fmod f param rest
@@ -212,6 +213,7 @@ eval_fun env expr = case expr of
         | Just f <- Map.lookup n pTime_pC_pC -> eval_mod getTime f x rest
         | Just f <- Map.lookup n pS_pA_pA -> eval_mod getString f x rest
         | Just f <- Map.lookup n pInt_pOrd_pOrd -> eval_mod getInt f x rest
+        | Just f <- Map.lookup n pInt_pC_pC -> eval_mod getInt f x rest
     MCommand "_" -> pure id
     Com n
         | Just f <- Map.lookup n pA_pA -> pure f
