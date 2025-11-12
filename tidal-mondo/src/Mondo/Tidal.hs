@@ -266,7 +266,24 @@ pBool_pA_pA =
 pC_pC_pC :: Map String (ControlPattern -> ControlPattern -> ControlPattern)
 pC_pC_pC =
     Map.fromList
-        [ ("interlace", T.interlace)
+        [ ("interlace", flip T.interlace)
+        , ("add", (T.|+|))
+        , ("ladd", (T.|+))
+        , ("radd", (T.+|))
+        , ("sub", (T.|-|))
+        , ("lsub", (T.|-))
+        , ("rsub", (T.-|))
+        , ("mul", (T.|*|))
+        , ("lmul", (T.|*))
+        , ("rmul", (T.*|))
+        , ("div", (T.|/|))
+        , ("ldiv", (T.|/))
+        , ("rdiv", (T./|))
+        , ("mod", (T.|%|))
+        , ("lmod", (T.|%))
+        , ("rmod", (T.%|))
+        , ("lvalue", (T.|>))
+        , ("rvalue", (T.|<))
         ]
 
 pInt_pA_pA :: Map String (Pattern Int -> Pattern a -> Pattern a)

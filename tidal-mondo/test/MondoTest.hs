@@ -320,8 +320,8 @@ run = describe "tidal-mondo" do
         itEval "n c'min # every 1 (arp up)" $ T.every 1 (T.arp "up") $ T.n "c'min"
 
         -- add/sub tests
-        itEval "n [1 2] # add (n 3) # pan 1" $ T.n "[1 2]" |+ T.n "3" # T.pan 1
-        itEval "n 0..12 # sub (n <0 5>) # lpf 1" $ T.n "0..12" |- T.n "<0 5>" # T.cutoff 1
+        itEval "n [1 2] # ladd (n 3) # pan 1" $ T.n "[1 2]" |+ T.n "3" # T.pan 1
+        itEval "n 0..12 # lsub (n <0 5>) # lpf 1" $ T.n "0..12" |- T.n "<0 5>" # T.cutoff 1
 
         -- stack tests
         itEval "s <piano,kawai>" $ T.s "<piano,kawai>"
@@ -376,7 +376,7 @@ run = describe "tidal-mondo" do
         itEval "n [0 ~ 1 2 0 2 ~ 3*2] # rot <0 1> # s drum" $ T.rot "<0 1>" $ T.n "0 ~ 1 2 0 2 ~ 3*2" # T.sound "drum"
         itEval "s [bd sn [cp ht] hh] # superimpose (fast 2)" $ T.superimpose (T.fast 2) $ T.sound "bd sn [cp ht] hh"
         itEval "note [c2 c3] # s piano" $ T.note "[c2 c3]" # T.sound "piano"
-        itEval "n c2 # off 0.125 (add (n 7))" $ T.off 0.125 (|+ T.n 7) $ T.n "c2"
+        itEval "n c2 # off 0.125 (ladd (n 7))" $ T.off 0.125 (|+ T.n 7) $ T.n "c2"
         itEval "s hh*8 # pan (sine # slow <3 1>)" $ T.sound "hh*8" # T.pan (T.slow "<3 1>" T.sine)
         itEval "s sine*4 # dec(sine # slow 4 # range 0 2)" $ T.sound "sine*4" # T.decay (T.slow 4 $ T.range 0 2 T.sine)
         itEval "s [bd hh sn cp] # iter 4" $ T.iter 4 $ T.sound "bd hh sn cp"
@@ -386,7 +386,7 @@ run = describe "tidal-mondo" do
         itEval "n 0..7 # sometimes (# lpf 1 # jux rev)" $ T.sometimes (T.jux T.rev . (# T.cutoff 1)) $ T.n "0..7"
         itEval "n 0..7 # sometimes (# lpf 1 # dec 1)" $ T.sometimes ((# T.decay 1) . (# T.cutoff 1)) $ T.n "0..7"
         itEval "s sitar # lpf (sine/3 # range 120 400)" $ T.sound "sitar" # T.cutoff (T.range 120 400 $ T.slow 3 T.sine)
-        itEval "n <a'm9'8 e'7sus4'8> # arp <up down>*2 # sub (n <12 [12 5]>/2)" $ T.n $ T.arp "<up down>*2" "<a'm9'8 e'7sus4'8>" |- "<12 [12 5]>/2"
+        itEval "n <a'm9'8 e'7sus4'8> # arp <up down>*2 # lsub (n <12 [12 5]>/2)" $ T.n $ T.arp "<up down>*2" "<a'm9'8 e'7sus4'8>" |- "<12 [12 5]>/2"
 
         itEval "$ def melody [0 1 2 3] $ n melody" $ T.n "[0 1 2 3]"
 

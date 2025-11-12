@@ -11,7 +11,7 @@ module Mondo.Eval (eval) where
 import Control.Monad (replicateM)
 import Data.Map.Strict qualified as Map
 import GHC.Float (float2Double)
-import Sound.Tidal.Core ((#), (|+), (|-))
+import Sound.Tidal.Core ((#))
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
 import Sound.Tidal.ParseBP qualified as T
@@ -74,15 +74,12 @@ eval_top _ v = mkError ("expected a list, got: " <> show v) (P.newPos "input" 1 
 
 eval_list :: Env -> [MondoExpr] -> Either ParseError T.ControlPattern
 eval_list env es = case es of
-    -- add/sub are custom mondo functions to control how the pattern are applied to the chain
-    Com "add" : MList param : MList rest : [] -> do
-        restPat <- eval_list env rest
-        addPat <- eval_list env param
-        pure $ restPat |+ addPat
-    Com "sub" : MList param : MList rest : [] -> do
-        restPat <- eval_list env rest
-        subPat <- eval_list env param
-        pure $ restPat |- subPat
+    -- custom mondo functions to control how the pattern are applied to the chain
+    Com n : MList param : MList rest : []
+        | Just f <- Map.lookup n pC_pC_pC -> do
+            xPat <- eval_list env param
+            yPat <- eval_list env rest
+            pure $ f yPat xPat
     -- scale is custom in mondo so that it can be used after the notes like 'n 0 # scale minor'
     Com "scale" : param : MList rest : [] -> eval_scale param rest
     Com "n" : param : MList rest : [] -> eval_notes param rest
@@ -166,9 +163,6 @@ eval_list env es = case es of
 eval_fun :: Env -> MondoExpr -> Either ParseError (T.ControlPattern -> T.ControlPattern)
 eval_fun env expr = case expr of
     MList [MLam _ body] -> eval_fun env body
-    MList (Com "add" : MList rest : []) -> do
-        p <- eval_list env rest
-        pure (|+ p)
     -- Direct modifiers like 'rev'
     MList (Com n : rest)
         | Just f <- Map.lookup n pA_pA -> eval_compo f rest
@@ -193,7 +187,7 @@ eval_fun env expr = case expr of
         | Just f <- Map.lookup n pC_pC_pC
         , MList c1 <- x -> do
             pc1 <- eval_list env c1
-            eval_compo (f pc1) rest
+            eval_compo (flip f pc1) rest
     -- Modifiers with two params
     MList (Com n : param1 : param2 : rest)
         | Just f <- Map.lookup n pTime_pTime_pA_pA -> do
