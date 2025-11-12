@@ -7,7 +7,7 @@ module MondoTest where
 
 import Data.List (sort)
 import Sound.Tidal.Control qualified as T
-import Sound.Tidal.Core ((#), (|+), (|+|), (|-))
+import Sound.Tidal.Core ((#), (|+), (|-))
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
 import Sound.Tidal.ParseBP ()
@@ -273,8 +273,8 @@ run = describe "tidal-mondo" do
 
         itEval "n [c2 c3]" do
             T.n "c2 c3"
-        itEval "s sine # n [c2 c3]" do
-            T.sound "sine" |+| T.n "c2 c3"
+        itEval "n [c2 c3] # s sine" do
+            T.n "c2 c3" # T.sound "sine"
         itEval "$ s a $ s b $ s c # lpf 50" do
             T.stack [T.s "a", T.s "b", T.s "c" # T.cutoff 50]
         itEval "s bd:1" do
@@ -358,7 +358,7 @@ run = describe "tidal-mondo" do
         itEval "s [jvbass drum:4] # gap 16" $ T.gap 16 $ T.sound "[jvbass drum:4]"
         itEval "interlace (s [bd sn kurt]) (s [bd sn:2] # every 3 rev)" $ T.interlace (T.sound "bd sn kurt") (T.every 3 T.rev $ T.sound "bd sn:2")
         itEval "s bd*8 # sometimesBy 0.25 (density 2)" $ T.sometimesBy 0.25 (T.density 2) $ T.sound "bd*8"
-        itEval "s arpy # n [0 1 [~ 2] 3] # someCyclesBy 0.5 (# crush 2)" $ T.someCyclesBy 0.5 (# T.crush 2) $ T.n "0 1 [~ 2] 3" # T.sound "arpy"
+        itEval "n [0 1 [~ 2] 3] # s arpy # someCyclesBy 0.5 (# crush 2)" $ T.someCyclesBy 0.5 (# T.crush 2) $ T.n "0 1 [~ 2] 3" # T.sound "arpy"
         itEval "s [bd sn] # fit' 1 2 [0 1] [1 0]" $ T.sound (T.fit' 1 2 "0 1" "1 0" "bd sn")
         itEval "s [bd sn:1] # juxBy .5 (fast 2)" $ T.juxBy 0.5 (T.fast 2) $ T.sound "bd sn:1"
         itEval "s bev # randslice 32 # fast 4" $ T.fast 4 $ T.randslice 32 $ T.sound "bev"
@@ -375,7 +375,7 @@ run = describe "tidal-mondo" do
         itEval "sound [bd sn] # echo 4 .2 .5" $ T.echo 4 0.2 0.5 $ T.sound "bd sn"
         itEval "n [0 ~ 1 2 0 2 ~ 3*2] # rot <0 1> # s drum" $ T.rot "<0 1>" $ T.n "0 ~ 1 2 0 2 ~ 3*2" # T.sound "drum"
         itEval "s [bd sn [cp ht] hh] # superimpose (fast 2)" $ T.superimpose (T.fast 2) $ T.sound "bd sn [cp ht] hh"
-        itEval "s piano # note [c2 c3]" $ T.note "[c2 c3]" # T.sound "piano"
+        itEval "note [c2 c3] # s piano" $ T.note "[c2 c3]" # T.sound "piano"
         itEval "n c2 # off 0.125 (add (n 7))" $ T.off 0.125 (|+ T.n 7) $ T.n "c2"
         itEval "s hh*8 # pan (sine # slow <3 1>)" $ T.sound "hh*8" # T.pan (T.slow "<3 1>" T.sine)
         itEval "s sine*4 # dec(sine # slow 4 # range 0 2)" $ T.sound "sine*4" # T.decay (T.slow 4 $ T.range 0 2 T.sine)

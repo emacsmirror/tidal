@@ -11,7 +11,7 @@ module Mondo.Eval (eval) where
 import Control.Monad (replicateM)
 import Data.Map.Strict qualified as Map
 import GHC.Float (float2Double)
-import Sound.Tidal.Core ((#), (|+), (|+|), (|-))
+import Sound.Tidal.Core ((#), (|+), (|-))
 import Sound.Tidal.Core qualified as T
 import Sound.Tidal.Params qualified as T
 import Sound.Tidal.ParseBP qualified as T
@@ -74,18 +74,6 @@ eval_top _ v = mkError ("expected a list, got: " <> show v) (P.newPos "input" 1 
 
 eval_list :: Env -> [MondoExpr] -> Either ParseError T.ControlPattern
 eval_list env es = case es of
-    -- When notes are at the end, just eval the pattern
-    Com "n" : param : [] -> eval_notes param
-    -- When notes are in the middle, eval the rest first then apply the notes with |+|
-    Com "n" : param : MList rest : [] -> do
-        restPat <- eval_list env rest
-        notePat <- eval_notes param
-        pure $ restPat |+| notePat
-    -- When notes are in the middle, eval the rest first then apply the notes with |+|
-    Com "note" : param : MList rest : [] -> do
-        restPat <- eval_list env rest
-        notePat <- eval_ppat (mkMondoParam "note" PNote T.note) param
-        pure $ restPat |+| notePat
     -- add/sub are custom mondo functions to control how the pattern are applied to the chain
     Com "add" : MList param : MList rest : [] -> do
         restPat <- eval_list env rest
@@ -95,6 +83,10 @@ eval_list env es = case es of
         restPat <- eval_list env rest
         subPat <- eval_list env param
         pure $ restPat |- subPat
+    -- scale is custom in mondo so that it can be used after the notes like 'n 0 # scale minor'
+    Com "scale" : param : MList rest : [] -> eval_scale param rest
+    Com "n" : param : MList rest : [] -> eval_notes param rest
+    Com "n" : param : [] -> eval_notes param []
     -- ControlPatterns like 'sound'
     Com n : param : rest
         | Just f <- Map.lookup n pStr_pC -> eval_control (mkMondoParam n PStr f) param rest
@@ -115,9 +107,6 @@ eval_list env es = case es of
             ypat <- eval_list env y
             zpat <- traverse (eval_top env) z
             pure $ f (toTime x.value) ypat zpat
-
-    -- scale is custom in mondo so that it can be used after the notes like 'n 0 # scale minor'
-    Com "scale" : param : MList rest : [] -> eval_scale param rest
     -- n-colon-pat is injected by the eval_pat, when evaluating expression like 'bd:<(1 # lpf 42)>'
     MCommand "n-colon-pat" : param : rest -> eval_control (mkMondoParam "" PDouble (T.pF "n")) param rest
     -- stack separate mondo pattern, it is injected with '$'
@@ -132,12 +121,18 @@ eval_list env es = case es of
     eval_ppat :: (T.Parseable a, T.Enumerable a, Ord a) => MondoPat a b -> MondoExpr -> Either ParseError (T.Pattern b)
     eval_ppat mpat expr = snd <$> eval_pat False env mpat expr
 
-    eval_notes :: MondoExpr -> Either ParseError T.ControlPattern
-    eval_notes param = case env.envScale of
-        -- No scale defined, eval notes from pattern
-        Nothing -> eval_ppat (mkMondoParam "n" PNote T.n) param
-        -- Scale was piped, eval int from pattern
-        Just scale -> eval_ppat (mkMondoParam "scale" PInt scale) param
+    eval_notes :: MondoExpr -> [MondoExpr] -> Either ParseError T.ControlPattern
+    eval_notes param rest = do
+        notePat <- case env.envScale of
+            -- No scale defined, eval notes from pattern
+            Nothing -> eval_ppat (mkMondoParam "n" PNote T.n) param
+            -- Scale was piped, eval int from pattern
+            Just scale -> eval_ppat (mkMondoParam "scale" PInt scale) param
+        case rest of
+            [] -> pure notePat
+            xs -> do
+                restPat <- eval_list env xs
+                pure $ restPat # notePat
 
     eval_scale :: MondoExpr -> [MondoExpr] -> Either ParseError T.ControlPattern
     eval_scale param rest = do
