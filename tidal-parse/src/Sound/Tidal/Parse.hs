@@ -224,7 +224,8 @@ instance Parse (Pattern String) where
 
 haskellishParseBP :: (Enumerable a, Parseable a) => H (Pattern a)
 haskellishParseBP = do
-  (b, _) <- Haskellish.span
+  ((sy, sx), _) <- Haskellish.span
+  let b = (sx - 1, sy - 1)
   p <- parseBP <$> string
   case p of
     Left e -> throwError $ Data.Text.pack $ show e
