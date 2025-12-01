@@ -488,3 +488,7 @@ run =
          (Arc 0 1)
          (_ribbon 0.25 0.25 ("a b c d" :: Pattern String))
          "b b b b"
+    describe "runMarkov" $ do
+      it "deterministic transition matrix" $ do
+        runMarkov 4 [[0,1],[1,0]] 0 0
+          `shouldBe` [0,1,0,1]

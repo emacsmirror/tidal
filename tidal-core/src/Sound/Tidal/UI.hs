@@ -1434,9 +1434,9 @@ runMarkov n tp xi seed = take n $ map fst $ L.iterate' (markovStep renorm) (xi, 
       where
         r = timeToRand seed'
     renorm :: IM.IntMap (Map.Map Double Int)
-    renorm = IM.fromList $ zip [0 ..] [Map.fromList $ zip (tail $ scanl (+) 0 x) [0 ..] | x <- tp]
+    renorm = IM.fromList $ zip [0 ..] [Map.fromListWith (\ new old -> old) $ zip (tail $ scanl (+) 0 x) [0 ..] | x <- tp]
     findIndex :: Double -> Map.Map Double Int -> Int
-    findIndex x v = maybe 0 snd (Map.lookupGE x v)
+    findIndex x v = maybe (snd (Map.findMax v)) snd (Map.lookupGT x v)
     delta = 1 / fromIntegral n
 
 -- | @markovPat n xi tp@ generates a one-cycle pattern of @n@ steps in a Markov
