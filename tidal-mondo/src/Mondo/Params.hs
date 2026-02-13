@@ -23,7 +23,7 @@ import Mondo.Token (Positioned (..))
 
 -- | The 'Env' keeps track of attributes that can be set through pipes
 data Env = Env
-    { envScale :: Maybe (T.Pattern Int -> T.ControlPattern)
+    { envScale :: Maybe (T.Pattern T.Note -> T.ControlPattern)
     -- ^ A scale set like this "n 0 # scale minor", it will be applied when encountering a note pattern.
     , currentParam :: Maybe MondoExpr
     -- ^ The current param, see Note [Depend on Chaining Functions Locally]
@@ -164,6 +164,9 @@ fromNote :: MondoPat a b -> Maybe (T.Pattern T.Note -> T.Pattern b)
 fromNote mpat = case mpat.pat of
     PNote -> Just mpat.patToControl
     _ -> Nothing
+
+noteToInt :: T.Note -> Int
+noteToInt note = round $ note.unNote
 
 patWithPos :: Positioned a -> T.Pattern a
 patWithPos v = T.withContext (addPos v) $ pure v.value

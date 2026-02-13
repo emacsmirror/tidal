@@ -281,10 +281,6 @@ run = describe "tidal-mondo" do
             T.sound "bd:1"
         itEval "s bd:<1 2>" do
             T.sound "<bd:1 bd:2>"
-        itEval "n ([0 1 2] # scale minor)" do
-            T.scale "minor" "0 1 2"
-        itEval "n [0 1 2] # lpf 10 # scale minor" do
-            T.scale "minor" "0 1 2" # T.cutoff 10
         itEval "s bd # sometimes (# lpf 42)" do
             T.sometimes (# T.cutoff 42) $ T.sound "bd"
         itEval "s [bd:<1 2> (sd # lpf 23)] # sometimes (# lpf 42)" do
@@ -315,6 +311,16 @@ run = describe "tidal-mondo" do
 
         -- math tests
         itEval "n c2 # fast 3/4" $ T.fast (3 / 4) $ T.n "c2"
+
+        -- scale tests
+        itEval "note ([0 1 2] # scale minor)" do
+            T.note (T.scale "minor" "0 1 2")
+        itEval "note [0 3 2] # scale minor" do
+            T.note (T.scale "minor" "0 3 2")
+        itEval "note [0 1 2] # lpf 10 # scale minor" do
+            T.note (T.scale "minor" "0 1 2") # T.cutoff 10
+        itEval "note [0 1 2] # scale minor # lpf 10" do
+            T.note (T.scale "minor" "0 1 2") # T.cutoff 10
 
         -- lambda tests
         itEval "n c'min # every 1 (arp up)" $ T.every 1 (T.arp "up") $ T.n "c'min"

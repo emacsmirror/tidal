@@ -32,17 +32,20 @@ pattern Com :: String -> MondoExpr
 pattern Com s <- MPlain (Pos s)
 
 eval :: MondoExpr -> Either ParseError T.ControlPattern
-eval es = case (eval_maths es) of
+eval es = case eval_maths es of
     MList (MCommand "stack" : rest) ->
         let (defs, pats) = go [] [] rest
-         in eval_list (Env Nothing Nothing defs) $ MCommand "stack" : pats
+         in eval_top (Env Nothing Nothing defs) $ MList $ MCommand "stack" : pats
     pats -> eval_top newEnv pats
   where
+    -- remove muted pattern and extract def expression.
     go defs acc [] = (defs, reverse acc)
     go defs acc (x : xs) = case x of
         MList [Com "def", Com k, v] -> go ((k, v) : defs) acc xs
         MList rest | isMuted rest -> go defs acc xs
         _ -> go defs (x : acc) xs
+
+    -- top level patter
     isMuted [] = False
     isMuted (Com "_" : _) = True
     isMuted xs = case last xs of
@@ -55,6 +58,7 @@ mathOp "+" = Just (+)
 mathOp "-" = Just (-)
 mathOp _ = Nothing
 
+-- perform static math operations
 eval_maths :: MondoExpr -> MondoExpr
 eval_maths expr = case expr of
     MList [MCommand mathCommand, y, x] -- note: ops arg are inverted
@@ -80,10 +84,10 @@ eval_list env es = case es of
             xPat <- eval_list env param
             yPat <- eval_list env rest
             pure $ f yPat xPat
-    -- scale is custom in mondo so that it can be used after the notes like 'n 0 # scale minor'
+    -- scale is custom in mondo so that it can be used after the notes like 'note 0 # scale minor'
     Com "scale" : param : MList rest : [] -> eval_scale param rest
-    Com "n" : param : MList rest : [] -> eval_notes param rest
-    Com "n" : param : [] -> eval_notes param []
+    Com "note" : param : MList rest : [] -> eval_notes param rest
+    Com "note" : param : [] -> eval_notes param []
     -- ControlPatterns like 'sound'
     Com n : param : rest
         | Just f <- Map.lookup n pStr_pC -> eval_control (mkMondoParam n PStr f) param rest
@@ -122,9 +126,9 @@ eval_list env es = case es of
     eval_notes param rest = do
         notePat <- case env.envScale of
             -- No scale defined, eval notes from pattern
-            Nothing -> eval_ppat (mkMondoParam "n" PNote T.n) param
+            Nothing -> eval_ppat (mkMondoParam "note" PNote T.note) param
             -- Scale was piped, eval int from pattern
-            Just scale -> eval_ppat (mkMondoParam "scale" PInt scale) param
+            Just scale -> eval_ppat (mkMondoParam "scale" PNote scale) param
         case rest of
             [] -> pure notePat
             xs -> do
@@ -136,9 +140,9 @@ eval_list env es = case es of
         scalePat <- eval_ppat (mkMondoPat PStr) param
         case eval_pat False env (mkMondoPat PInt) (MList rest) of
             -- rest are notes, apply the scale and make a control param
-            Right (_, notePat) -> pure $ T.scale scalePat notePat
+            Right (_, notePat) -> pure $ T.note $ T.scale scalePat notePat
             -- rest is probably a pipe, add the scale to the env, and apply it later when encountering notes.
-            Left _ -> eval_list (env{envScale = Just (T.scale scalePat)}) rest
+            Left _ -> eval_list (env{envScale = Just (T.note . T.scale scalePat . fmap noteToInt)}) rest
 
     -- Evaluate a control pattern like 's bd'
     eval_control :: (T.Parseable a, T.Enumerable a, Ord a) => MondoPat a T.ValueMap -> MondoExpr -> [MondoExpr] -> Either ParseError (T.ControlPattern)
