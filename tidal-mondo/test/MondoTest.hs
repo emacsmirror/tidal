@@ -52,6 +52,9 @@ run = describe "tidal-mondo" do
         it "should parse comments" do
             parseTest "a // hello"
                 `shouldBe` MList [mp "a"]
+        it "should parse underscore" do
+            parseTest "a_b"
+                `shouldBe` MList [mp "a_b"]
 
     describe "mondo sugar" do
         let desguar = showAst . parseTest

@@ -68,7 +68,7 @@ spacesP = P.skipMany (spaces <|> oneLineComment)
 chordP :: TokenP String
 chordP = do
     char <- P.letter
-    rest <- P.many (P.letter <|> P.digit <|> P.char '\'')
+    rest <- P.many (P.letter <|> P.digit <|> P.char '\'' <|> P.char '_')
     pure (char : rest)
 
 tokenP :: TokenP MondoToken
