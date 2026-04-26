@@ -56,7 +56,7 @@ data State = State
   }
 
 -- | A datatype representing events taking place over time
-data Pattern a = Pattern {query :: State -> [Event a], steps :: Maybe (Rational), pureValue :: Maybe a}
+data Pattern a = Pattern {query :: State -> [Event a], steps :: Maybe Rational, pureValue :: Maybe a}
   deriving (Generic, Functor)
 
 instance (NFData a) => NFData (Pattern a)

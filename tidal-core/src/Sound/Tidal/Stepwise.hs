@@ -21,7 +21,7 @@ module Sound.Tidal.Stepwise where
 import Control.Applicative (liftA2)
 import Data.List (sort, sortOn, transpose)
 import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe)
-import Sound.Tidal.Core (stack, timecat, zoom, zoompat)
+import Sound.Tidal.Core (slowcat, stack, timecat, zoom, zoompat)
 import Sound.Tidal.Pattern
 import Sound.Tidal.Utils (enumerate, nubOrd, pairs)
 
@@ -129,6 +129,12 @@ stepalt :: [[Pattern a]] -> Pattern a
 stepalt groups = stepcat $ concat $ take (fromIntegral $ c * length groups) $ transpose $ map cycle groups
   where
     c = foldl1 lcm $ map length groups
+
+stepzip :: [Pattern a] -> Pattern a
+stepzip pats = setSteps (Just s) $ _fast s zipped
+  where
+    zipped = slowcat $ map (pace 1) $ filter hasSteps pats
+    s = foldl1 lcmr $ mapMaybe steps pats
 
 {-
 s_while :: Pattern Bool -> (Pattern a -> Pattern a) -> Pattern a -> Pattern a
