@@ -224,7 +224,8 @@ instance Parse (Pattern String) where
 
 haskellishParseBP :: (Enumerable a, Parseable a) => H (Pattern a)
 haskellishParseBP = do
-  (b, _) <- Haskellish.span
+  ((sy, sx), _) <- Haskellish.span
+  let b = (sx - 1, sy - 1)
   p <- parseBP <$> string
   case p of
     Left e -> throwError $ Data.Text.pack $ show e
@@ -445,6 +446,8 @@ instance Parse (Pattern String -> ControlPattern) where
     $(fromTidal "s")
       <|> $(fromTidal "sound")
       <|> $(fromTidal "vowel")
+      <|> $(fromTidal "cc")
+      <|> $(fromTidal "nrpn")
       <|> (parser :: H (String -> Pattern String -> ControlPattern)) <*!> parser
       <|> pA_pB
       <|> a_patternB
@@ -452,6 +455,8 @@ instance Parse (Pattern String -> ControlPattern) where
 instance Parse (Pattern Int -> ControlPattern) where
   parser =
     $(fromTidal "cut")
+      <|> $(fromTidal "nrpnn")
+      <|> $(fromTidal "nrpnv")
       <|> (parser :: H (String -> Pattern Int -> ControlPattern)) <*!> parser
       <|> pA_pB
       <|> a_patternB
@@ -474,6 +479,7 @@ instance Parse (Pattern Note -> ControlPattern) where
     $(fromTidal "up")
       <|> $(fromTidal "n")
       <|> $(fromTidal "note")
+      <|> $(fromTidal "midinote")
       <|> (parser :: H (String -> Pattern Note -> ControlPattern)) <*!> parser
       <|> pA_pB
       <|> a_patternB
@@ -503,6 +509,13 @@ instance Parse (Pattern Double -> ControlPattern) where
       <|> $(fromTidal "loop")
       <|> $(fromTidal "coarse")
       <|> $(fromTidal "nudge")
+      <|> $(fromTidal "amp")
+      <|> $(fromTidal "velocity")
+      <|> $(fromTidal "midibend")
+      <|> $(fromTidal "midichan")
+      <|> $(fromTidal "miditouch")
+      <|> $(fromTidal "ccn")
+      <|> $(fromTidal "ccv")
       <|> (parser :: H (String -> Pattern Double -> ControlPattern)) <*!> parser
       <|> pA_pB
       <|> a_patternB
