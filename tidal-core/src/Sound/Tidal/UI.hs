@@ -1565,7 +1565,7 @@ fit' cyc n from to p = squeezeJoin $ _fit n mapMasks to
   where
     mapMasks =
       [ stretch $ mask (const True <$> filterValues (== i) from') p'
-      | i <- [0 .. n - 1]
+        | i <- [0 .. n - 1]
       ]
     p' = density cyc p
     from' = density cyc from
@@ -1605,6 +1605,20 @@ chunk' npat f p = innerJoin $ (\n -> _chunk' n f p) <$> npat
 -- | DEPRECATED, use '_chunk' with negative numbers instead
 _chunk' :: (Integral a) => a -> (Pattern b -> Pattern b) -> Pattern b -> Pattern b
 _chunk' n f p = _chunk (-n) f p
+
+chunkinto :: Pattern Int -> (Pattern b -> Pattern b) -> Pattern b -> Pattern b
+chunkinto npat f p = innerJoin $ (\n -> _chunkinto n f p) <$> npat
+
+chunkInto :: Pattern Int -> (Pattern b -> Pattern b) -> Pattern b -> Pattern b
+chunkInto = chunkinto
+
+_chunkinto :: Int -> (Pattern a -> Pattern a) -> Pattern a -> Pattern a
+_chunkinto 0 _ pat = pat
+_chunkinto n f pat = into (iterf n $ fastcat $ map pure (True : replicate (abs n - 1) False)) f pat
+  where
+    iterf
+      | n > 0 = _iter'
+      | otherwise = _iter
 
 -- |
 -- @inside@ carries out an operation /inside/ a cycle.
@@ -3000,14 +3014,17 @@ rib :: Pattern Time -> Pattern Time -> Pattern a -> Pattern a
 rib = ribbon
 
 -- | Turns a pattern into a pattern of patterns, according to the structure of another given pattern.
-unjoin :: Pattern Bool -> Pattern b -> Pattern (Pattern b)
-unjoin pieces pat = withEvent snip pieces
+unjoinfunc :: Pattern Bool -> (Pattern a -> Pattern a) -> Pattern a -> Pattern (Pattern a)
+unjoinfunc pieces f pat = withEvent snip pieces
   where
     -- If true, set value to the part of pattern looped at event boundaries
-    snip e@Event {value = True} = e {value = _ribbon (wholeStart e) (wholeStop e - wholeStart e) pat}
+    snip e@Event {value = True} = e {value = f $ _ribbon (wholeStart e) (wholeStop e - wholeStart e) pat}
     -- Otherwise, set value to unchanged pattern
     snip e = e {value = pat}
 
+unjoin :: Pattern Bool -> Pattern a -> Pattern (Pattern a)
+unjoin pieces pat = unjoinfunc pieces id pat
+
 -- | Applies a function to subcycles of a pattern, as defined by the structure of another given pattern.
-into :: Pattern Bool -> (Pattern a -> Pattern b) -> Pattern a -> Pattern b
-into pieces func pat = innerJoin $ fmap func $ unjoin pieces pat
+into :: Pattern Bool -> (Pattern b -> Pattern b) -> Pattern b -> Pattern b
+into pieces func pat = innerJoin $ unjoinfunc pieces func pat

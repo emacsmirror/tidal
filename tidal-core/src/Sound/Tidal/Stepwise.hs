@@ -18,12 +18,11 @@
 
 module Sound.Tidal.Stepwise where
 
-import Control.Applicative (liftA2)
-import Data.List (sort, sortOn, transpose)
-import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe)
-import Sound.Tidal.Core (slowcat, stack, timecat, zoom, zoompat)
+import Data.List (sort, transpose)
+import Data.Maybe (fromMaybe, isJust, mapMaybe)
+import Sound.Tidal.Core (slowcat, stack, timecat, zoom)
 import Sound.Tidal.Pattern
-import Sound.Tidal.Utils (enumerate, nubOrd, pairs)
+import Sound.Tidal.Utils (nubOrd, pairs)
 
 -- _lcmsteps :: [Pattern a] -> Pattern Time
 -- _lcmsteps pats = foldl1 (liftA2 lcmr) $ mapMaybe steps pats
@@ -38,6 +37,7 @@ s_patternify2 f a b p = stepJoin $ (\x y -> f x y p) <$> a <*> b
 stepJoin :: Pattern (Pattern a) -> Pattern a
 stepJoin pp = Pattern q first_t Nothing
   where
+    -- TODO - use context?
     q st@(State a c) = query (timecat $ retime $ slices $ query (rotL (sam $ start a) pp) (st {arc = Arc 0 1})) st
     first_t :: Maybe Rational
     first_t = steps $ timecat $ retime $ slices $ queryArc pp (Arc 0 1)
@@ -90,9 +90,9 @@ _stepdrop :: Time -> Pattern a -> Pattern a
 _stepdrop _ pat@(Pattern _ Nothing _) = pat
 _stepdrop n pat@(Pattern _ (Just t) _) = steptake (pure $ f t) pat
   where
-    f t
-      | n >= 0 = t - n
-      | otherwise = negate (t + n)
+    f t'
+      | n >= 0 = t' - n
+      | otherwise = negate (t' + n)
 
 stepdrop :: Pattern Time -> Pattern a -> Pattern a
 stepdrop = s_patternify _stepdrop
