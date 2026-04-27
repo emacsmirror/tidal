@@ -56,7 +56,7 @@ data State = State
   }
 
 -- | A datatype representing events taking place over time
-data Pattern a = Pattern {query :: State -> [Event a], steps :: Maybe (Rational), pureValue :: Maybe a}
+data Pattern a = Pattern {query :: State -> [Event a], steps :: Maybe Rational, pureValue :: Maybe a}
   deriving (Generic, Functor)
 
 instance (NFData a) => NFData (Pattern a)
@@ -72,6 +72,9 @@ setStepsFrom a b = b {steps = steps a}
 
 withSteps :: (Rational -> Rational) -> Pattern a -> Pattern a
 withSteps f p = p {steps = fmap f $ steps p}
+
+hasSteps :: Pattern a -> Bool
+hasSteps = isJust . steps
 
 pace :: Rational -> Pattern a -> Pattern a
 pace target p@(Pattern _ (Just t) _) = setSteps (Just target) $ _fast (target / t) p

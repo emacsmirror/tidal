@@ -18,14 +18,15 @@
 
 module Sound.Tidal.Stepwise where
 
+import Control.Applicative (liftA2)
 import Data.List (sort, sortOn, transpose)
 import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe)
-import Sound.Tidal.Core (stack, timecat, zoom, zoompat)
+import Sound.Tidal.Core (slowcat, stack, timecat, zoom, zoompat)
 import Sound.Tidal.Pattern
 import Sound.Tidal.Utils (enumerate, nubOrd, pairs)
 
--- _lcmsteps :: [Pattern a] -> Maybe Time
--- _lcmsteps pats = foldl1 lcmr <$> (sequence $ map steps pats)
+-- _lcmsteps :: [Pattern a] -> Pattern Time
+-- _lcmsteps pats = foldl1 (liftA2 lcmr) $ mapMaybe steps pats
 
 s_patternify :: (a -> Pattern b -> Pattern c) -> (Pattern a -> Pattern b -> Pattern c)
 s_patternify f (Pattern _ _ (Just a)) b = f a b
@@ -114,11 +115,26 @@ _extend factor pat = _expand factor $ _fast factor pat
 extend :: Pattern Rational -> Pattern a -> Pattern a
 extend = s_patternify _extend
 
+-- polymeter :: [Pattern a] -> Pattern a
+-- polymeter pats = stack $ map (pace targetSteps) pats'
+--   where
+--     targetSteps = _lcmsteps pats'
+--     pats' = filter hasSteps pats
+
+-- pm :: [Pattern a] -> Pattern a
+-- pm = polymeter
+
 -- | Successively plays a pattern from each group in turn
 stepalt :: [[Pattern a]] -> Pattern a
 stepalt groups = stepcat $ concat $ take (fromIntegral $ c * length groups) $ transpose $ map cycle groups
   where
     c = foldl1 lcm $ map length groups
+
+stepzip :: [Pattern a] -> Pattern a
+stepzip pats = setSteps (Just s) $ _fast s zipped
+  where
+    zipped = slowcat $ map (pace 1) $ filter hasSteps pats
+    s = foldl1 lcmr $ mapMaybe steps pats
 
 {-
 s_while :: Pattern Bool -> (Pattern a -> Pattern a) -> Pattern a -> Pattern a
