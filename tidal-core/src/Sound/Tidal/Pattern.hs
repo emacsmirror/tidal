@@ -31,7 +31,6 @@ module Sound.Tidal.Pattern
   )
 where
 
-import Control.Applicative (liftA2)
 import Control.DeepSeq (NFData)
 import Control.Monad ((>=>))
 import Data.Data (Data)
@@ -616,6 +615,9 @@ withQueryControls f pat = pat {query = query pat . (\(State a m) -> State a (f m
 withEvent :: (Event a -> Event b) -> Pattern a -> Pattern b
 withEvent f p = p {query = map f . query p, pureValue = Nothing}
 
+withEventArc :: (Arc -> Arc) -> Pattern a -> Pattern a
+withEventArc f pat = withEvent (\(Event c w p v) -> Event c (f <$> w) (f p) v) pat
+
 -- | @withEvent f p@ returns a new @Pattern@ with each value mapped over
 -- function @f@.
 withValue :: (a -> b) -> Pattern a -> Pattern b
@@ -853,6 +855,12 @@ matchManyToOne f pa pb = pa {query = q, pureValue = Nothing}
             as' = as $ start $ wholeOrPart ex
         as s = query pa $ fQuery s
         fQuery s = st {arc = Arc s s}
+
+-- Like `rev`, but reverses the whole pattern, rather than every cycle in the pattern.
+revv :: Pattern a -> Pattern a
+revv pat = withEventArc negateArc $ withQueryArc negateArc pat
+  where
+    negateArc (Arc s e) = Arc (negate e) (negate s)
 
 -- ** Event filters
 
