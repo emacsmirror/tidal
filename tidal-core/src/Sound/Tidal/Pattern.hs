@@ -31,6 +31,10 @@ module Sound.Tidal.Pattern
   )
 where
 
+-- Backward compatibility for liftA2
+--- https://github.com/haskell/core-libraries-committee/blob/main/guides/export-lifta2-prelude.md
+
+import Control.Applicative (Applicative (..))
 import Control.DeepSeq (NFData)
 import Control.Monad ((>=>))
 import Data.Data (Data)
@@ -42,7 +46,7 @@ import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import GHC.Generics (Generic)
 import Sound.Tidal.Time
-import Prelude hiding ((*>), (<*))
+import Prelude hiding (Applicative (..), (*>), (<*))
 
 ------------------------------------------------------------------------
 
