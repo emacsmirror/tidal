@@ -1,6 +1,21 @@
 
 # TidalCycles log of changes
 
+## 1.10.2 - Fairisle
+
+### What's Changed
+
+* Compatibility with ghc 9.6+ @yaxu https://codeberg.org/uzu/tidal/pulls/1249
+* Fix 'into' for patterning subpatterns, adding 'chunkinto' for chunking into subpatterns @yaxu https://codeberg.org/uzu/tidal/pulls/1247
+* Add 'revv' for reversing whole patterns rather than cycle-by-cycle @yaxu https://codeberg.org/uzu/tidal/pulls/1247
+* Emacs plugin fixes, thanks @bokonist https://codeberg.org/uzu/tidal/pulls/1242
+* Add _fromNote for raw string parsing, thanks @pulu https://codeberg.org/uzu/tidal/pulls/1235
+* Add tidal-mondo notation! Thanks @TristanCacqueray https://codeberg.org/uzu/tidal/pulls/1233
+* Fix runMarkov, thanks @jwaldmann https://codeberg.org/uzu/tidal/pulls/1232
+* Add midi-related params to tidal-parse, thanks @TristanCacqueray https://codeberg.org/uzu/tidal/pulls/1225
+* Reinstate 'required' alias for Nothing, used in defining OSC target defs @yaxu https://codeberg.org/uzu/tidal/pulls/1226 
+* Add 'polymeter' stepwise function, with 'pm' alias 
+
 ## 1.10.1 - Dundee
 
 ### What's Changed
