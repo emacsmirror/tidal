@@ -26,22 +26,22 @@ type Micros  = Int64
 type Quantum = CDouble
 
 instance Storable AbletonLink where
-  alignment _ = #{alignment abl_link}
-  sizeOf    _ = #{size abl_link}
+  alignment _ = #{alignment struct abl_link}
+  sizeOf    _ = #{size struct abl_link}
   peek ptr = do
-    impl <- #{peek abl_link,impl} ptr
-    return (AbletonLink impl)
-  poke ptr (AbletonLink impl) = do
-    #{poke abl_link,impl} ptr impl
+    impl <- #{peek struct abl_link, impl} ptr
+    pure (AbletonLink impl)
+  poke ptr (AbletonLink impl) =
+    #{poke struct abl_link, impl} ptr impl
 
 instance Storable SessionState where
-  alignment _ = #{alignment abl_link_session_state}
-  sizeOf    _ = #{size abl_link_session_state}
+  alignment _ = #{alignment struct abl_link_session_state}
+  sizeOf    _ = #{size struct abl_link_session_state}
   peek ptr = do
-    impl <- #{peek abl_link_session_state,impl} ptr
-    return (SessionState impl)
-  poke ptr (SessionState impl) = do
-    #{poke abl_link_session_state,impl} ptr impl
+    impl <- #{peek struct abl_link_session_state, impl} ptr
+    pure (SessionState impl)
+  poke ptr (SessionState impl) =
+    #{poke struct abl_link_session_state, impl} ptr impl
 
 foreign import ccall "abl_link.h abl_link_create"
   create :: BPM -> IO AbletonLink
