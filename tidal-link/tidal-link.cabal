@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                tidal-link
-version:             1.2.0
+version:             1.2.1
 synopsis:            Ableton Link integration for Tidal
 -- description:
 homepage:            http://tidalcycles.org/
@@ -46,10 +46,10 @@ library
       -DLINK_PLATFORM_WINDOWS=1 -Wno-multichar
   elif os(darwin)
     cxx-options:
-      -DLINK_PLATFORM_MACOSX=1 -std=c++14 -Wno-multichar -Wno-subobject-linkage
+      -DLINK_PLATFORM_MACOSX=1 -std=c++17 -Wno-multichar -Wno-subobject-linkage
   else
     cxx-options:
-      -DLINK_PLATFORM_LINUX=1 -std=c++14 -Wno-multichar -Wno-subobject-linkage
+      -DLINK_PLATFORM_LINUX=1 -std=c++17 -Wno-multichar -Wno-subobject-linkage
 
   if impl(ghc >= 9.4)
     build-depends: system-cxx-std-lib
