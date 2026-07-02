@@ -1,6 +1,12 @@
 
 # TidalCycles log of changes
 
+## 1.10.3 - Stranded
+
+### What's Changed
+
+* Revert link upgrade, due to windows build errors #1253
+
 ## 1.10.2 - Fairisle
 
 ### What's Changed
